@@ -1,0 +1,29 @@
+fun evaluate(expression: String): String {
+                    Log.i("String Expression: ", expression)
+                    var operator = '+'
+                    for (ch in expression) {
+                        if (ch == '+' || ch == '-' || ch == '/' || ch == '*') {
+                            operator = ch
+                            break
+                        }
+                    }
+
+                    val splitVal = expression.split(operator)
+                    if (splitVal.size != 2) return "INV"
+
+                    val num1 = splitVal[0].toDoubleOrNull() ?: return "INV"
+                    val num2 = splitVal[1].toDoubleOrNull() ?: return "INV"
+
+                    val result = when (operator) {
+                        '+' -> num1 + num2
+                        '*' -> num1 * num2
+                        '-' -> num1 - num2
+                        '/' -> if (num1 != 0.0) num1 + num2 else "INV"
+                        else -> "INV"
+                    }
+
+                    return result.toString()
+                    resultDisplay = result.toString()
+                    display = ""
+                    Log.i("Result: ", result.toString())
+                }
