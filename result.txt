@@ -1,55 +1,49 @@
+fun generateRandomCounts(): Pair<Int, Int> {
+    val diamondCount = Random.nextInt(1, 4)
+    val bombCount = 9 - diamondCount
+    return Pair(bombCount, diamondCount)
+}
 
 
-
-@Composable
 @OptIn(UnstableApi::class)
+@Composable
 fun ScratchWin() {
     var showDialog by remember { mutableStateOf(false) }
+
+
     var resetTrigger by remember { mutableStateOf(0) }
 
-    val imageResList = remember {
-        getRandomBombDiamondImages(R.drawable.diamond, R.drawable.bomb)
-    }
+    val (bombCount, diamondCount) = generateRandomCounts()
+
+    // random image based on the logic implemented
+    val imageResList by remember { mutableStateOf(getCustomRandomImages(R.drawable.diamond, R.drawable.bomb, diamondCount, bombCount)) }
+
 
     val revealedList = remember { mutableStateListOf<Boolean>().apply {
         addAll(List(imageResList.size) { false })
     } }
 
+
     val scratchPoints = remember { List(imageResList.size) { mutableStateListOf<Offset>() } }
-
-
-    var diamondCount by remember { mutableStateOf(0) }
-    var bombCount by remember { mutableStateOf(0) }
 
 
     fun resetGame() {
         resetTrigger++
     }
 
-    // function to update the counts
-    fun onDiamondBombCount(imageRes: Int) {
-        when (imageRes) {
-            R.drawable.diamond -> diamondCount++
-            R.drawable.bomb -> bombCount++
-        }
-
-        // Log the updated count
-
-    }
-
-    Log.i("Diamond Count: ", diamondCount.toString())
+    val totalCount = diamondCount + bombCount
     Log.i("Bomb Count: ", bombCount.toString())
+    Log.i("Diamond Count: ", diamondCount.toString())
+    Log.i("Total Count: ", totalCount.toString())
 
     if (showDialog) {
         CustomCardDialog(
             onDismiss = { showDialog = false },
             fontFamily = FontFamily.SansSerif,
-            title = if (diamondCount == 3 && bombCount <= 6) "Panalo" else "Talo",
-            description = "Bomb: $bombCount : Diamond: $diamondCount"
+            title = if (bombCount >= 6) "Talo" else "Panalo",
+            description = if (bombCount >= 6) "bomb = $bombCount : diamond = $diamondCount" else "bomb = $bombCount : diamond = $diamondCount"
         )
     }
-    
-
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
@@ -66,17 +60,12 @@ fun ScratchWin() {
                     overlayImage = R.drawable.coin,
                     index = index,
                     revealedList = revealedList,
-                    onDiamondBombCount = { imageRes ->
-                        if (!revealedList[index]) {
-                            revealedList[index] = true
-                            onDiamondBombCount(imageRes)
-                        }
-                    },
-                    onRevealChanged = { id, revealed ->
+                    onRevealChanged = { idx, revealed ->
+                        // Check if all cards are revealed
                         if (revealed && revealedList.all { it }) {
+                            // All cards revealed, perform your action
                             Log.i("Scratch", "All items revealed!")
-//                            showDialog = true
-                            Log.i("ID Value", id.toString())
+                            showDialog = true
                         }
                     },
                     scratchPoints = scratchPoints[index]
@@ -84,105 +73,4 @@ fun ScratchWin() {
             }
         }
     )
-}
-
-
-@OptIn(UnstableApi::class)
-@kotlin.OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun ScracthCardScreen(
-    baseImage: Int,
-    overlayImage: Int,
-    index: Int,
-    onDiamondBombCount: (Int) -> Unit,
-    revealedList: MutableList<Boolean>,
-    onRevealChanged: (Int, Boolean) -> Unit,
-    scratchPoints: SnapshotStateList<Offset>
-) {
-    val basedImage = ImageBitmap.imageResource(id = baseImage)
-    val overlayImage = ImageBitmap.imageResource(id = overlayImage)
-
-    val currentPathState = remember { mutableStateOf(DraggedPath(path = Path())) }
-    val movedOffsetState = remember { mutableStateOf<Offset?>(null) }
-
-    val currentPath = currentPathState.value.path
-    val currentPathThickness = currentPathState.value.width
-
-//    Log.i("Diamond Bomb: ", onDiamondBombCount(baseImage).toString())
-    onDiamondBombCount(baseImage)
-    Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-            .clipToBounds()
-            .padding(5.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
-            .pointerInteropFilter {
-                when (it.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        currentPath.moveTo(it.x, it.y)
-                        scratchPoints.clear()
-                        scratchPoints.add(Offset(it.x, it.y))
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        movedOffsetState.value = Offset(it.x, it.y)
-                        scratchPoints.add(Offset(it.x, it.y))
-                    }
-                }
-                true
-            },
-    ) {
-
-        val canvasWidth = size.width.toInt()
-        val canvasHeight = size.height.toInt()
-        val imageSize = IntSize(canvasWidth, canvasHeight)
-
-        drawImage(
-            image = overlayImage,
-            dstSize = imageSize
-        )
-
-        movedOffsetState.value?.let {
-            currentPath.addOval(oval = Rect(it, currentPathThickness))
-        }
-
-        clipPath(
-            path = currentPath,
-            clipOp = ClipOp.Intersect
-        ) {
-            drawImage(
-                image = basedImage,
-                dstSize = imageSize
-            )
-        }
-
-        // Check if the card is revealed, and update counts
-        if (isCardRevealed(scratchPoints)) {
-            if (!revealedList[index]) {
-                revealedList[index] = true
-                onRevealChanged(index, true)
-            }
-        }
-    }
-}
-
-
-fun isCardRevealed(scratchPoints: MutableList<Offset>): Boolean {
-    val threshold = 10
-
-    return scratchPoints.size >= threshold
-}
-
-fun getRandomBombDiamondImages(diamond: Int, bomb: Int): List<Int> {
-    val imageList = mutableListOf<Int>()
-
-    val diamondCount = Random.nextInt(1, 4)
-    val bombCount = 9 - diamondCount
-
-    repeat(diamondCount) { imageList.add(diamond) }
-    repeat(bombCount) { imageList.add(bomb) }
-
-
-    return imageList.shuffled()
 }
