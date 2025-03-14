@@ -1,12 +1,106 @@
 @Composable
+@OptIn(UnstableApi::class)
+fun ScratchWin() {
+    // Variable for the dialog
+    var showDialog by remember { mutableStateOf(false) }
+
+    // Reset trigger (game reset)
+    var resetTrigger by remember { mutableStateOf(0) }
+
+
+    val imageResList = remember {
+        getRandomBombDiamondImages(R.drawable.diamond, R.drawable.bomb)
+    }
+
+    // Reuse the existing list of revealed states
+    val revealedList = remember { mutableStateListOf<Boolean>().apply {
+        addAll(List(imageResList.size) { false })
+    } }
+
+    val scratchPoints = remember { List(imageResList.size) { mutableStateListOf<Offset>() } }
+
+    fun resetGame() {
+        resetTrigger++
+    }
+
+    var diamondCount by remember { mutableStateOf(0) }
+    var bombCount by remember { mutableStateOf(0) }
+
+    fun onDiamondBombCount(imageRes: Int) {
+        if (imageRes == R.drawable.diamond) {
+            diamondCount++
+        } else if (imageRes == R.drawable.bomb) {
+            bombCount++
+        }
+
+        Log.i("Bomb Count: ", bombCount.toString())
+        Log.i("Diamond Count: ", diamondCount.toString())
+    }
+
+//    val totalCount = diamondCount + bombCount
+//    Log.i("Bomb Count: ", bombCount.toString())
+//    Log.i("Diamond Count: ", diamondCount.toString())
+//    Log.i("Total Count: ", totalCount.toString())
+//
+//    // Show the dialog if all cards are revealed
+//    if (showDialog) {
+//        CustomCardDialog(
+//            onDismiss = { showDialog = false },
+//            fontFamily = FontFamily.SansSerif,
+//            title = if (diamondCount == 3 && bombCount <= 6) "Panalo" else "Talo",
+//            description = "Bomb: $bombCount : Diamond: $diamondCount"
+//        )
+//    }
+
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = Modifier
+            .fillMaxHeight()
+            .border(1.dp, Color.Red),
+        horizontalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center,
+        userScrollEnabled = false,
+        content = {
+            items(9) { index ->
+                ScracthCardScreen(
+                    baseImage = imageResList[index],
+                    overlayImage = R.drawable.coin,
+                    index = index,
+                    revealedList = revealedList,
+                    onDiamondBombCount = {
+                        if (!revealedList[index]) {
+                            revealedList[index] = true
+                            onDiamondBombCount(it)
+                        }
+                    },
+                    onRevealChanged = { id, revealed ->
+                        if (revealed && revealedList.all { it }) {
+                            Log.i("Scratch", "All items revealed!")
+//                            showDialog = true
+                            Log.i("ID Value", id.toString())
+                        }
+                    },
+                    scratchPoints = scratchPoints[index]
+                )
+            }
+        }
+    )
+}
+
+
+@kotlin.OptIn(ExperimentalComposeUiApi::class)
+@Composable
 fun ScracthCardScreen(
     baseImage: Int,
     overlayImage: Int,
     index: Int,
+    onDiamondBombCount: (Int) -> Unit,
     revealedList: MutableList<Boolean>,
     onRevealChanged: (Int, Boolean) -> Unit,
     scratchPoints: SnapshotStateList<Offset>
 ) {
+    onDiamondBombCount(baseImage)
     val baseImage = ImageBitmap.imageResource(id = baseImage)
     val overlayImage = ImageBitmap.imageResource(id = overlayImage)
 
@@ -16,9 +110,9 @@ fun ScracthCardScreen(
     val currentPath = currentPathState.value.path
     val currentPathThickness = currentPathState.value.width
 
-    val onMovedoffset = { x, y ->
-        movedOffsetState.value = Offset(x, y)
-    }
+//    val onMovedoffset = { x, y ->
+//        movedOffsetState.value = Offset(x, y)
+//    }
 
 //    ScratchCard(
 //        overlayImage = overlayImage,
@@ -36,6 +130,7 @@ fun ScracthCardScreen(
 //    )
 
 
+
     Canvas(
         modifier = Modifier
             .fillMaxWidth()
@@ -48,12 +143,12 @@ fun ScracthCardScreen(
                 when (it.action) {
                     MotionEvent.ACTION_DOWN -> {
                         currentPath.moveTo(it.x, it.y)
-                        scratchPoints.clear() // Start fresh on a new touch
+                        scratchPoints.clear()
                         scratchPoints.add(Offset(it.x, it.y))
                     }
                     MotionEvent.ACTION_MOVE -> {
-                        onMovedoffset(it.x, it.y)
-                        scratchPoints.add(Offset(it.x, it.y)) // Add the new point to the list
+                        movedOffsetState.value = Offset(it.x, it.y)
+                        scratchPoints.add(Offset(it.x, it.y))
                     }
                 }
                 true
@@ -69,7 +164,7 @@ fun ScracthCardScreen(
             dstSize = imageSize
         )
 
-        onMovedoffset?.let {
+        movedOffsetState.value?.let {
             currentPath.addOval(oval = Rect(it, currentPathThickness))
         }
 
