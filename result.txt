@@ -1,85 +1,3 @@
-fun generateRandomCounts(): Pair<Int, Int> {
-    val diamondCount = Random.nextInt(1, 4)
-    val bombCount = 9 - diamondCount
-    return Pair(bombCount, diamondCount)
-}
-
-@OptIn(UnstableApi::class)
-@Composable
-fun ScratchWin() {
-    // variable for the dialog
-    var showDialog by remember { mutableStateOf(false) }
-
-
-    var resetTrigger by remember { mutableStateOf(0) }
-
-    // variable and value of bomb and diamond from function
-    var bombCount by remember { mutableStateOf(0) }
-    var diamondCount by remember  { mutableStateOf(0) }
-
-
-    diamondCount = Random.nextInt(1, 4)
-    bombCount = 9 - diamondCount
-
-
-    val imageResList by remember { mutableStateOf(getCustomRandomImages(R.drawable.diamond, R.drawable.bomb, diamondCount, bombCount)) }
-
-
-    val revealedList = remember { mutableStateListOf<Boolean>().apply {
-        addAll(List(imageResList.size) { false })
-    } }
-
-
-    val scratchPoints = remember { List(imageResList.size) { mutableStateListOf<Offset>() } }
-
-
-    fun resetGame() {
-        resetTrigger++
-    }
-
-    val totalCount = diamondCount + bombCount
-    Log.i("Bomb Count: ", bombCount.toString())
-    Log.i("Diamond Count: ", diamondCount.toString())
-    Log.i("Total Count: ", totalCount.toString())
-
-    if (showDialog) {
-        CustomCardDialog(
-            onDismiss = { showDialog = false },
-            fontFamily = FontFamily.SansSerif,
-            title = if (diamondCount == 3 && bombCount <= 6) "Panalo" else "Talo",
-            description = "Bomb: ${bombCount} : Diamond: ${diamondCount}"
-        )
-    }
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        modifier = Modifier
-            .fillMaxHeight()
-            .border(1.dp, Color.Red),
-        horizontalArrangement = Arrangement.Center,
-        verticalArrangement = Arrangement.Center,
-        userScrollEnabled = false,
-        content = {
-            items(9) { index ->
-                ScracthCardScreen(
-                    baseImage = imageResList[index],
-                    overlayImage = R.drawable.coin,
-                    index = index,
-                    revealedList = revealedList,
-                    onRevealChanged = { idx, revealed ->
-                        // Check if all cards are revealed
-                        if (revealed && revealedList.all { it }) {
-                            // All cards revealed, perform your action
-                            Log.i("Scratch", "All items revealed!")
-                            showDialog = true
-                        }
-                    },
-                    scratchPoints = scratchPoints[index]
-                )
-            }
-        }
-    )
-}
 @Composable
 fun ScracthCardScreen(
     baseImage: Int,
@@ -95,19 +13,82 @@ fun ScracthCardScreen(
     val currentPathState = remember { mutableStateOf(DraggedPath(path = Path())) }
     val movedOffsetState = remember { mutableStateOf<Offset?>(null) }
 
+    val currentPath = currentPathState.value.path
+    val currentPathThickness = currentPathState.value.width
 
-    ScratchCard(
-        overlayImage = overlayImage,
-        baseImage = baseImage,
-        movedOffset = movedOffsetState.value,
-        onMovedoffset = { x, y ->
-            movedOffsetState.value = Offset(x, y)
-        },
-        currentPath = currentPathState.value.path,
-        currentPathThickness = currentPathState.value.width,
-        index = index,
-        revealedList = revealedList,
-        onRevealChanged = onRevealChanged,
-        scratchPoints = scratchPoints
-    )
+    val onMovedoffset = { x, y ->
+        movedOffsetState.value = Offset(x, y)
+    }
+
+//    ScratchCard(
+//        overlayImage = overlayImage,
+//        baseImage = baseImage,
+//        movedOffset = movedOffsetState.value,
+//        onMovedoffset = { x, y ->
+//            movedOffsetState.value = Offset(x, y)
+//        },
+//        currentPath = currentPathState.value.path,
+//        currentPathThickness = currentPathState.value.width,
+//        index = index,
+//        revealedList = revealedList,
+//        onRevealChanged = onRevealChanged,
+//        scratchPoints = scratchPoints
+//    )
+
+
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .clipToBounds()
+            .padding(5.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
+            .pointerInteropFilter {
+                when (it.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        currentPath.moveTo(it.x, it.y)
+                        scratchPoints.clear() // Start fresh on a new touch
+                        scratchPoints.add(Offset(it.x, it.y))
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        onMovedoffset(it.x, it.y)
+                        scratchPoints.add(Offset(it.x, it.y)) // Add the new point to the list
+                    }
+                }
+                true
+            },
+    ) {
+
+        val canvasWidth = size.width.toInt()
+        val canvasHeight = size.height.toInt()
+        val imageSize = IntSize(canvasWidth, canvasHeight)
+
+        drawImage(
+            image = overlayImage,
+            dstSize = imageSize
+        )
+
+        onMovedoffset?.let {
+            currentPath.addOval(oval = Rect(it, currentPathThickness))
+        }
+
+        clipPath(
+            path = currentPath,
+            clipOp = ClipOp.Intersect
+        ) {
+            drawImage(
+                image = baseImage,
+                dstSize = imageSize
+            )
+        }
+
+
+        if (isCardRevealed(scratchPoints)) {
+            if (!revealedList[index]) {
+                revealedList[index] = true
+                onRevealChanged(index, true)
+            }
+        }
+    }
 }
