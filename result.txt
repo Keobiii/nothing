@@ -1,40 +1,150 @@
 @Composable
-fun CustomCardDialog(
-    onDismiss: () -> Unit,
-    fontFamily: FontFamily,
-    title: String,
-    description: String,
-) {
+fun GameUI(index: Int, gameName: String) {
+    val viewModel = ViewModelProvider(this)[ResultViewModel::class.java]
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
+    val constraints = ConstraintSet {
+        val headerContent = createRefFor("headerContent")
+        val mainContent = createRefFor("mainContent")
+        val footerContent = createRefFor("footerContent")
+
+        constrain(headerContent) {
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        }
+
+        constrain(mainContent) {
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            top.linkTo(parent.top)
+            bottom.linkTo(parent.bottom)
+        }
+
+        constrain(footerContent) {
+            top.linkTo(mainContent.bottom)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            bottom.linkTo(parent.bottom)
+        }
+    }
+
+    ConstraintLayout(
+        constraints,
+        modifier = Modifier.fillMaxSize().background(pageBackground).padding(16.dp)
+    ) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.13f)
+                .layoutId("headerContent")
+                .padding(10.dp)
+                .border(1.dp, Color.Blue),
+            contentAlignment = Alignment.Center
+        ) {
             Text(
-                text = title,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = fontFamily,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        text = {
-            Text(
-                text = description,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = fontFamily,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onDismiss() // Close dialog after adding card
+                text = buildAnnotatedString {
+                    withStyle(
+                        style = SpanStyle(
+                            color = yelloowww,
+                            fontSize = 32.sp,
+                            textDecoration = TextDecoration.None
+                        )
+                    ) {
+                        append("S")
+                    }
+                    append("cratch")
+                    withStyle(
+                        style = SpanStyle(
+                            color = yelloowww,
+                            fontSize = 32.sp,
+                            textDecoration = TextDecoration.None
+                        )
+                    ) {
+                        append("C")
+                    }
+                    append("ard")
                 },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "Okay", fontFamily = fontFamily)
+                modifier = Modifier.padding(start = 20.dp),
+                color =  MaterialTheme.colorScheme.background,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                fontStyle = FontStyle.Italic,
+                textAlign = TextAlign.Center,
+            )
+
+
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxHeight(0.6f)
+                .fillMaxWidth()
+                .background(pageBackground)
+                .layoutId("mainContent")
+                .border(1.dp, Color.Yellow)
+        ) {
+            if (index == 1) {
+                ScratchWin()
+            } else if (index == 2) {
+                Spinner()
+            } else if (index == 3) {
+                Mining(index, gameName)
+            } else {
+                GuessCard(viewModel)
             }
         }
-    )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.13f)
+                .layoutId("footerContent")
+                .padding(10.dp)
+                .border(1.dp, Color.Blue),
+        ) {
+            Text(
+                "Footer"
+            )
+
+
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+@Composable
+fun GuessCard(viewModel: ResultViewModel) {
+
+    var result by viewModel.result.observeAsState(initial = "")
+
+    if (userPick == "lower" && firstCardVal > secondCardVal) {
+                result = "lower"
+            }
+
+            if (userPick == "higher" && firstCardVal < secondCardVal) {
+                result = "higher"
+            }
+}
+
+
+
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+
+class ResultViewModel : ViewModel() {
+    private val _result = MutableLiveData<String>()
+    val result : LiveData<String> = _result
+
+    fun onResultUpdate(newResult : String) {
+        _result.value = newResult
+    }
 }
