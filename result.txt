@@ -1,172 +1,72 @@
-@OptIn(UnstableApi::class)
 @Composable
-fun ScratchWin() {
-    var showDialog by remember { mutableStateOf(false) }
-    var resetTrigger by remember { mutableStateOf(0) }
+fun ActionsIU(
+    actionIcon: ImageVector,
+    actionTitle: String
+) {
+    var showBottomSheet by remember { mutableStateOf(false) }
 
+    if (showBottomSheet) {
 
-    val (bombCount, diamondCount) = remember {
-        generateRandomCounts()
+        CustomBottomSheetDialog(showBottomSheet)
     }
 
-
-    val imageResList by remember {
-        mutableStateOf(getCustomRandomImages(R.drawable.diamond, R.drawable.bomb, diamondCount, bombCount))
-    }
-
-
-    val revealedList = remember(resetTrigger) { mutableStateListOf<Boolean>().apply { addAll(List(imageResList.size) { false }) } }
-    val scratchPoints = remember { List(imageResList.size) { mutableStateListOf<Offset>() } }
-
-
-    fun resetGame() {
-        resetTrigger++
-    }
-
-    val totalCount = diamondCount + bombCount
-    Log.i("Bomb Count: ", bombCount.toString())
-    Log.i("Diamond Count: ", diamondCount.toString())
-    Log.i("Total Count: ", totalCount.toString())
-
-    // Show dialog when all items are revealed
-    if (showDialog) {
-        CustomCardDialog(
-            onDismiss = { showDialog = false },
-            fontFamily = FontFamily.SansSerif,
-            title = if (bombCount > 6) "Talo" else "Panalo",
-            description = "bomb = $bombCount : diamond = $diamondCount"
-        )
-
-        resetGame()
-    }
-
-    // Scratch card grid
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+    Column(
         modifier = Modifier
-            .fillMaxHeight()
-            .border(1.dp, Color.Red),
-        horizontalArrangement = Arrangement.Center,
+            .clickable{
+                showBottomSheet = true
+            },
         verticalArrangement = Arrangement.Center,
-        userScrollEnabled = false
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        items(9) { index ->
-            ScracthCardScreen(
-                baseImage = imageResList[index], // Use the image list based on bomb/diamond count
-                overlayImage = R.drawable.coin,
-                index = index,
-                resetTrigger,
-                revealedList = revealedList,
-                onRevealChanged = { idx, revealed ->
-                    // Check if all cards are revealed
-                    if (revealed && revealedList.all { it }) {
-                        // All cards revealed, perform your action
-                        Log.i("Scratch", "All items revealed!")
-                        showDialog = true
-                    }
-                },
-                scratchPoints = scratchPoints[index]
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.background)
+                .padding(5.dp)
+        ) {
+            Icon(
+                modifier = Modifier.size(25.dp),
+                imageVector = actionIcon,
+                contentDescription = actionTitle,
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
+
+        Text(
+            modifier = Modifier.padding(top = 5.dp),
+            text = actionTitle,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White
+        )
     }
 }
 
 
 
-@kotlin.OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScracthCardScreen(
-    baseImage: Int,
-    overlayImage: Int,
-    index: Int,
-    resetTrigger: Int,
-    revealedList: MutableList<Boolean>,
-    onRevealChanged: (Int, Boolean) -> Unit,
-    scratchPoints: SnapshotStateList<Offset>
-) {
-    val imageee = baseImage
-    val baseImage = ImageBitmap.imageResource(id = baseImage)
-    val overlayImage = ImageBitmap.imageResource(id = overlayImage)
+fun CustomBottomSheetDialog(showBottomSheet: Boolean) {
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet = showBottomSheet
 
-    val currentPathState = remember(resetTrigger) { mutableStateOf(DraggedPath(path = Path())) }
-    val movedOffsetState = remember(resetTrigger) { mutableStateOf<Offset?>(null) }
-
-    val currentPath = currentPathState.value.path
-    val currentPathThickness = currentPathState.value.width
-
-//    val onMovedoffset = { x, y ->
-//        movedOffsetState.value = Offset(x, y)
-//    }
-
-//    ScratchCard(
-//        overlayImage = overlayImage,
-//        baseImage = baseImage,
-//        movedOffset = movedOffsetState.value,
-//        onMovedoffset = { x, y ->
-//            movedOffsetState.value = Offset(x, y)
-//        },
-//        currentPath = currentPathState.value.path,
-//        currentPathThickness = currentPathState.value.width,
-//        index = index,
-//        revealedList = revealedList,
-//        onRevealChanged = onRevealChanged,
-//        scratchPoints = scratchPoints
-//    )
-
-
-
-    Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-            .clipToBounds()
-            .padding(5.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
-            .pointerInteropFilter {
-                when (it.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        currentPath.moveTo(it.x, it.y)
-                        scratchPoints.clear() // Start fresh on a new touch
-                        scratchPoints.add(Offset(it.x, it.y))
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        movedOffsetState.value = Offset(it.x, it.y)
-                        scratchPoints.add(Offset(it.x, it.y)) // Add the new point to the list
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showBottomSheet = false
+            },
+            sheetState = sheetState
+        ) {
+            // Bottom sheet content
+            Button(onClick = {
+                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                    if (!sheetState.isVisible) {
+                        showBottomSheet = false
                     }
                 }
-                true
-            },
-    ) {
-
-        val canvasWidth = size.width.toInt()
-        val canvasHeight = size.height.toInt()
-        val imageSize = IntSize(canvasWidth, canvasHeight)
-
-        drawImage(
-            image = overlayImage,
-            dstSize = imageSize
-        )
-
-        movedOffsetState.value?.let {
-            currentPath.addOval(oval = Rect(it, currentPathThickness))
-        }
-
-        clipPath(
-            path = currentPath,
-            clipOp = ClipOp.Intersect
-        ) {
-            drawImage(
-                image = baseImage,
-                dstSize = imageSize
-            )
-        }
-
-
-        if (isCardRevealed(scratchPoints)) {
-            if (!revealedList[index]) {
-                revealedList[index] = true
-                onRevealChanged(index, true)
+            }) {
+                Text("Hide bottom sheet")
             }
         }
     }
