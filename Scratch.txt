@@ -1,1 +1,146 @@
-Type 'androidx. compose. runtime. State<kotlin. String>' has no method 'getValue(Nothing?, KProperty0<*>)', so it cannot serve as a delegate.
+Guess Card File
+fun GuessCard(viewModel: ResultViewModel) {
+    val result = viewModel.result.observeAsState("")
+              if (userPick == "lower" && firstCardVal > secondCardVal) {
+                viewModel.onResultUpdate("lower")
+            }
+
+            if (userPick == "higher" && firstCardVal < secondCardVal) {
+                viewModel.onResultUpdate("higher")
+            }
+}
+
+
+Result View Model file"
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+
+class ResultViewModel : ViewModel() {
+    private val _result = MutableLiveData<String>()
+    val result : LiveData<String> = _result
+
+    fun onResultUpdate(newResult : String) {
+        _result.value = newResult
+    }
+}
+
+Game UI File
+@Composable
+fun GameUI(index: Int, gameName: String) {
+    val viewModel: ResultViewModel = viewModel()
+
+    val constraints = ConstraintSet {
+        val headerContent = createRefFor("headerContent")
+        val mainContent = createRefFor("mainContent")
+        val footerContent = createRefFor("footerContent")
+
+        constrain(headerContent) {
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        }
+
+        constrain(mainContent) {
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            top.linkTo(parent.top)
+            bottom.linkTo(parent.bottom)
+        }
+
+        constrain(footerContent) {
+            top.linkTo(mainContent.bottom)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            bottom.linkTo(parent.bottom)
+        }
+    }
+
+    ConstraintLayout(
+        constraints,
+        modifier = Modifier.fillMaxSize().background(pageBackground).padding(16.dp)
+    ) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.13f)
+                .layoutId("headerContent")
+                .padding(10.dp)
+                .border(1.dp, Color.Blue),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(
+                        style = SpanStyle(
+                            color = yelloowww,
+                            fontSize = 32.sp,
+                            textDecoration = TextDecoration.None
+                        )
+                    ) {
+                        append("S")
+                    }
+                    append("cratch")
+                    withStyle(
+                        style = SpanStyle(
+                            color = yelloowww,
+                            fontSize = 32.sp,
+                            textDecoration = TextDecoration.None
+                        )
+                    ) {
+                        append("C")
+                    }
+                    append("ard")
+                },
+                modifier = Modifier.padding(start = 20.dp),
+                color =  MaterialTheme.colorScheme.background,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                fontStyle = FontStyle.Italic,
+                textAlign = TextAlign.Center,
+            )
+
+
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxHeight(0.6f)
+                .fillMaxWidth()
+                .background(pageBackground)
+                .layoutId("mainContent")
+                .border(1.dp, Color.Yellow)
+        ) {
+            if (index == 1) {
+                ScratchWin()
+            } else if (index == 2) {
+                Spinner()
+            } else if (index == 3) {
+                Mining(index, gameName)
+            } else {
+                GuessCard(viewModel)
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.13f)
+                .layoutId("footerContent")
+                .padding(10.dp)
+                .border(1.dp, Color.Blue),
+        ) {
+            val resultState = viewModel.result.observeAsState("")
+
+            Text(
+                text = "Result: ${resultState.value}",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+
+
+        }
+    }
+}
