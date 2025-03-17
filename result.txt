@@ -1,73 +1,40 @@
 @Composable
-fun ActionsIU(
-    actionIcon: ImageVector,
-    actionTitle: String
+fun CustomCardDialog(
+    onDismiss: () -> Unit,
+    fontFamily: FontFamily,
+    title: String,
+    description: String,
 ) {
-    var showBottomSheet by remember { mutableStateOf(false) }
 
-    if (showBottomSheet) {
-
-        CustomBottomSheetDialog(showBottomSheet)
-    }
-
-    Column(
-        modifier = Modifier
-            .clickable{
-                showBottomSheet = true
-            },
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(10.dp))
-                .background(MaterialTheme.colorScheme.background)
-                .padding(5.dp)
-        ) {
-            Icon(
-                modifier = Modifier.size(25.dp),
-                imageVector = actionIcon,
-                contentDescription = actionTitle,
-                tint = MaterialTheme.colorScheme.onBackground
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = fontFamily,
+                modifier = Modifier.fillMaxWidth()
             )
-        }
-
-        Text(
-            modifier = Modifier.padding(top = 5.dp),
-            text = actionTitle,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White
-        )
-    }
-}
-
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CustomBottomSheetDialog(showBottomSheet: Boolean) {
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
-    var showBottomSheet = showBottomSheet
-
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                showBottomSheet = false
-            },
-            sheetState = sheetState
-        ) {
-            // Bottom sheet content
-            Button(onClick = {
-                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                    if (!sheetState.isVisible) {
-                        showBottomSheet = false
-                    }
-                }
-            }) {
-                Text("Hide bottom sheet")
+        },
+        text = {
+            Text(
+                text = description,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
+                fontFamily = fontFamily,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onDismiss() // Close dialog after adding card
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Okay", fontFamily = fontFamily)
             }
         }
-    }
+    )
 }
