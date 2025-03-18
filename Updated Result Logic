@@ -1,0 +1,32 @@
+Box(
+    modifier = Modifier
+        .fillMaxWidth()
+        .fillMaxHeight(0.13f)
+        .layoutId("footerContent")
+        .padding(10.dp)
+        .border(1.dp, Color.Blue)
+) {
+    val results by viewModel.results.observeAsState(emptyList())
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        items(results) { result ->
+            Text(
+                text = result,
+                fontSize = 16.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp)
+                    .border(1.dp, Color.Gray)
+                    .background(Color.DarkGray)
+                    .padding(8.dp)
+            )
+        }
+    }
+}
