@@ -1,0 +1,18 @@
+Lifecycle Callbacks - this refer to the predefined set of methods or functions that allow application to respond to changes in its state during lifecycle.
+
+1. OnCreate - this state triggered once, this state for the inital setup of the applications such as initializing views, logic, and setup for the layout.
+
+2. OnStart - this callback invoked after of the OnCreate. this calbacks indicates the activity is visible but not yet interactive, which means in this state, the activity prepare for visibility, its process the rendering updates, loading data, and animations occurs.
+
+3. onResume() - this callback is triggered when the activity is fully visible and ready to interact with the user, this will call after of onStart or whenever the activity returns from a OnPause(). in this state the app starts to interacting with the user.
+
+4. OnPause() - this callbak is called when the user leaves the activity, either switching activity or another app. this state makes the application activity is no longer in the foreground but still visible, which means it stop  the process of application thats not requires to run when its not on foreground.
+
+5. onStop - this callback is called when the activity is no longer visible to the user or when the application placed on the background. in this state where it should stop the process of the application such as services and database connections. this state also save a memory and battery if the app still on running unccessarry.
+
+6. onDestroy - this callback triggered when the application finish or user decide to terminate the application. in some cases the application force to terminate due to improper bug handling that cause of terminations. in this state will clean up the intialization made from onCreate or onStart, it will close the any active processes of application. 
+
+
+Jetpack Compose is Kotlin-based, where both the UI components and logic are implemented in the same place. It’s simpler than traditional XML because there’s no need to specify UI component IDs for interactions, and there are no separate XML layout files. Additionally, it’s reactive, meaning the UI automatically updates when the state changes, making it more flexible for modern Android development.
+
+Traditional XML defines the UI structure in XML files and manages the logic separately using Kotlin/Java. It requires specifying an ID for each UI component to access and manipulate them. Unlike Jetpack Compose, in traditional XML, you have to manually handle UI updates when data or state changes.
