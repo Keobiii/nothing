@@ -6,26 +6,24 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            CalculatorTheme {
 
-
-                // Variables to store the value of result and for display
-                var display by remember { mutableStateOf("") }
-//                var resultDisplay by remember { mutableStateOf("") }
-
-                // Using saveInstance to save the dat when the app is onPause or onStop
+        // Using saveInstance to save the dat when the app is onPause or onStop
 //                if (savedInstanceState != null) {
 //                    display = savedInstanceState.getString("DISPLAY_KEY", "") // Default to 0 if not found
 //                }
 
-                // Using SharedPreferences so even the app is killed, we can store data
-                sharedPref = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        // Using SharedPreferences so even the app is killed, we can store data
+        sharedPref = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
 
-                if (sharedPref != null) {
-                    display = sharedPref.getString("DISPLAY_KEY", "") ?: ""
-                    Log.d("MainActivity", "Restored Date: $display")
-                }
+            display = sharedPref.getString("DISPLAY_KEY", "") ?: ""
+            Log.d("MainActivity", "Restored Date: $display")
+
+
+        setContent {
+            CalculatorTheme {
+                // Variables to store the value of result and for display
+                var display by remember { mutableStateOf("") }
+//                var resultDisplay by remember { mutableStateOf("") }
 
 
 
@@ -392,11 +390,7 @@ class MainActivity : ComponentActivity() {
         println("State: onPause")
 
         // Save the state in SharedPreferences
-        val editor = sharedPref.edit()
-        editor.putString("DISPLAY_KEY", display)
-        editor.apply()
-
-//        display = ""
+        sharedPref.edit() { putString("DISPLAY_KEY", display) }
         Log.d("MainActivity", "Saved Data: $display")
     }
 
