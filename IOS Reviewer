@@ -1,0 +1,24 @@
+1. App Lifecycle Overview
+An iOS app goes through several key phases during its existence. The lifecycle refers to the series of states an app moves through, from launch to termination. Understanding this lifecycle is important because developers need to handle each phase correctly to ensure a smooth and efficient app experience.
+
+The main lifecycle phases of an iOS app include:
+
+Not Running: The app is not running, either because it has never been launched or it has been terminated.
+Inactive: The app is in the foreground but not receiving events. This occurs when the app is transitioning between states, such as when the app is launched or when a call comes in.
+Active: The app is in the foreground and is actively running. It is receiving events and handling user interactions.
+Background: The app is still running but is no longer in the foreground. It may continue executing tasks or be suspended until further notice.
+Suspended: The app is in the background and not executing any tasks. It’s essentially in a paused state until it is resumed or terminated.
+2. Key App Lifecycle Methods
+iOS apps are usually managed by a central controller, typically an instance of UIApplication or AppDelegate. These methods are invoked at various stages of the app's lifecycle. They give developers a way to respond to transitions between app states.
+
+application(_:didFinishLaunchingWithOptions:): Called when the app is first launched, typically used to perform initial setup (like setting up dependencies or loading data).
+
+applicationDidBecomeActive(_:): Called when the app moves from inactive to active. This is the best time to restart any tasks that were paused or not yet started when the app was inactive.
+
+applicationWillResignActive(_:): Called when the app is about to move from active to inactive. This can happen when a phone call is received or when the user switches to another app. You should pause ongoing tasks here.
+
+applicationDidEnterBackground(_:): Called when the app enters the background state (i.e., the user presses the Home button or switches to another app). Here you should save user data, release resources, and stop tasks that shouldn’t be running in the background.
+
+applicationWillEnterForeground(_:): Called when the app is transitioning from the background to the active state. Here, you can refresh the UI or re-initialize resources that were released in the background.
+
+applicationWillTerminate(_:): Called when the app is about to be terminated (e.g., the user kills the app or the system terminates it). This is an opportunity to clean up resources, save important data, or perform other shutdown tasks. (Note: This is not guaranteed to be called if the app is terminated due to system memory pressure).
