@@ -1,0 +1,49 @@
+ // Manual Coding
+                fun evaluate(expression: String): String {
+                    Log.i("String Expression: ", expression)
+
+                    var result = 0.0
+                    var currentNumber = 0.0
+                    var currentOperator = '+'
+                    var i = 0
+
+                    while (i < expression.length) {
+                        val ch = expression[i]
+
+                        if (ch.isDigit() || ch == '.') {
+                            var temp = ch.toString()
+                            i++
+                            while (i < expression.length && (expression[i].isDigit() || expression[i] == '.')) {
+                                temp += expression[i]
+                                i++
+                            }
+                            currentNumber = temp.toDouble()
+                            i--
+                        }
+
+                        if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || i == expression.length - 1) {
+                            when (currentOperator) {
+                                '+' -> result += currentNumber
+                                '-' -> result -= currentNumber
+                                '*' -> result *= currentNumber
+                                '/' -> {
+                                    if (currentNumber == 0.0) {
+                                        return "Undefined"
+                                    } else {
+                                        result /= currentNumber
+                                    }
+                                }
+                            }
+                            if (ch != ' ') {
+                                currentOperator = ch
+                            }
+                            currentNumber = 0.0
+                        }
+
+                        i++
+                    }
+                    var wholeNumber = if (result % 1 == 0.0) result.toInt() else result.toString()
+//                    Log.i("Result: ", result.toInt().toString())
+//                    Log.i("Whole Number: ", wholeNumber.toString())
+                    return wholeNumber.toString()
+                }
