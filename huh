@@ -1,4 +1,104 @@
- // Manual Coding
+class MainActivity : ComponentActivity() {
+
+    private lateinit var sharedPref: SharedPreferences
+    private var display: String = ""
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            CalculatorTheme {
+
+
+                // Variables to store the value of result and for display
+                var display by remember { mutableStateOf("") }
+//                var resultDisplay by remember { mutableStateOf("") }
+
+                // Using saveInstance to save the dat when the app is onPause or onStop
+//                if (savedInstanceState != null) {
+//                    display = savedInstanceState.getString("DISPLAY_KEY", "") // Default to 0 if not found
+//                }
+
+                // Using SharedPreferences so even the app is killed, we can store data
+                sharedPref = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+
+                if (sharedPref != null) {
+                    display = sharedPref.getString("DISPLAY_KEY", "") ?: ""
+                    Log.d("MainActivity", "Restored Date: $display")
+                }
+
+
+
+                // function that wil hold values from button into string
+                // this string will passed to the display variable
+                // ex. 2+5
+                // additionally, restriction for multiple operators input
+                fun Inputs(value: String) {
+                    val operators = setOf("+", "-", "*", "/")
+//                    resultDisplay = ""
+
+                    if (operators.contains(value) && display.isNotEmpty()) {
+                        val lastInput = display[display.length - 1].toString()
+                        if (operators.contains(lastInput)) {
+                            return
+                        }
+                    }
+                    display += value
+                }
+
+
+
+                // function to clear the display
+                fun clear() {
+                    display = ""
+//                    resultDisplay = ""
+                }
+
+                // function to convert string to numbers
+                // then change the sign
+                fun numberInString(inputString: String): String {
+                    // regex code to find numbers whether positive or negative
+                    val regex = "-?\\d+".toRegex()
+
+                    val matchResult = regex.find(inputString)
+
+                    return if (matchResult != null) {
+
+                        val numberStr = matchResult.value
+
+
+                        val number = numberStr.toInt()
+                        val convertedNumber = -number
+
+                        inputString.replace(numberStr, convertedNumber.toString())
+
+                    } else {
+
+                        inputString
+                    }
+
+
+                }
+
+                // function to convert negative to positive (vice-versa)
+                fun plusorMinus() {
+                    val newResult = numberInString(display)
+
+//                    resultDisplay = newResult
+
+                    display = newResult
+                }
+
+                // Drop last user input
+                fun dropLastInput(input: String): String {
+                    return if (input.isNotEmpty()) {
+                        input.dropLast(1)
+                    } else {
+                        input
+                    }
+                }
+
+                // Manual Coding
                 fun evaluate(expression: String): String {
                     Log.i("String Expression: ", expression)
 
@@ -47,3 +147,272 @@
 //                    Log.i("Whole Number: ", wholeNumber.toString())
                     return wholeNumber.toString()
                 }
+
+
+
+
+                // Manual Coding 2
+//                fun calculateResult(input: String): String {
+//                    return try {
+//                        val result = input.split("+", "-", "*", "/").map { it.toDouble() }
+//                        var total = result[0]
+//                        val num1 = result[0]
+//                        val num2 = result[1]
+//                        Log.i("Result: ", result.toString())
+//
+//                        var index = 0
+//                        input.forEach { char ->
+//                            when (char) {
+//                                '+' -> total += result[++index]
+//                                '-' -> total -= result[++index]
+//                                '*' -> total *= result[++index]
+//                                '/' -> total /= result[++index]
+//                            }
+//                        }
+//                        total.toString()
+//                    } catch (e: Exception) {
+//                        "Undefined"
+//                    }
+//                }
+
+
+
+                // Structure of the Calculator
+                // Surface will hold the entire screen
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(pageBackground)
+                ) {
+
+                    // Adding column to separate the display and buttons container
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(pageBackground),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+
+                        // Structure to display the display variable
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillMaxHeight(0.4f)
+                                    .background(pageBackground),
+                                horizontalAlignment = Alignment.End,
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize(),
+                                    contentAlignment = Alignment.BottomEnd
+                                ) {
+                                    Text(
+                                        modifier = Modifier.padding(5.dp),
+                                        text = display,
+                                        color = Color.White,
+                                        fontSize = 50.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        style = LocalTextStyle.current.merge(
+                                            TextStyle(
+                                                lineHeight = 1.em
+                                            )
+                                        )
+                                    )
+//                                    Text(
+//                                        modifier = Modifier.padding(5.dp),
+//                                        text = "",
+//                                        color = Color.White,
+//                                        fontSize = 50.sp,
+//                                        fontWeight = FontWeight.Bold,
+//                                        style = LocalTextStyle.current.merge(
+//                                            TextStyle(
+//                                                lineHeight = 1.em
+//                                            )
+//                                        )
+//                                    )
+
+
+                                }
+
+                            }
+
+                        // Structure to display the symbols
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(0.6f)
+                                .background(pageBackground),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            // Using for each, access the list properties
+                            // First is the Row
+                            buttons.forEach { row ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(5.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    // then each row will display the specific symbols
+                                    // ex. 7 8 9 /
+                                    // then pass the symbol and the color,
+                                    row.forEach { (symbol, color)->
+                                        // then each symbol will transform into Button
+                                        Button(
+                                            // Using onClick properties in Button,
+                                            // access every user input and determine which function will used based on the function in above
+                                            onClick = {
+                                                when(symbol) {
+                                                    // call function to clear the display
+                                                    "AC" -> clear()
+                                                    // call the function to delete last user input
+                                                    "C" -> display = dropLastInput(display)
+                                                    // call the function to calculate the current display value
+                                                    "+/-" -> plusorMinus()
+                                                    // call functions to store the symbols value on the string
+                                                    else -> Inputs(symbol)
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(color),
+                                            modifier = Modifier.size(90.dp)
+                                        ) {
+                                            // Inside of the Button, display the text
+                                            Text(
+                                                text = symbol,
+                                                fontSize = 24.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(5.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                Button(
+                                    onClick = {Inputs("0")},
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .width(180.dp)
+                                        .height(90.dp),
+                                    colors = ButtonDefaults.buttonColors(blackColor),
+                                ) {
+                                    Text(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        text = "0",
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Start
+                                    )
+                                }
+
+                                Button(
+                                    onClick = {Inputs(".")},
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .width(90.dp)
+                                        .height(90.dp),
+                                    colors = ButtonDefaults.buttonColors(blackColor),
+                                ) {
+                                    Text(
+                                        text = ".",
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                Button(
+                                    onClick = {
+                                        // call the function to calculate the current display value
+//                                        calculate()
+
+                                        //manual compute
+                                        display =  evaluate(display)
+
+//                                        calculateResult(display)
+
+//                                        resultDisplay = calculateResult(resultDisplay)
+//                                        display = ""
+
+                                    },
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .width(90.dp)
+                                        .height(90.dp),
+                                    colors = ButtonDefaults.buttonColors(orangeColor),
+                                ) {
+                                    Text(
+                                        text = "=",
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // saveInstance callback
+//    override fun onSaveInstanceState(outState: Bundle) {
+//        super.onSaveInstanceState(outState)
+//        outState.putString("DISPLAY_KEY", display)
+//    }
+//
+//    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+//        super.onRestoreInstanceState(savedInstanceState)
+//        display = savedInstanceState.getString("DISPLAY_KEY", "")
+//    }
+
+
+
+    override fun onStart() {
+        super.onStart()
+        println("State: onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        println("State: onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        println("State: onPause")
+
+        // Save the state in SharedPreferences
+        val editor = sharedPref.edit()
+        editor.putString("DISPLAY_KEY", display)
+        editor.apply()
+
+//        display = ""
+        Log.d("MainActivity", "Saved Data: $display")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        println("State: onStop")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        println("State: onRestart")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        println("State: onDestroy")
+
+    }
+}
