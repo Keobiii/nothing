@@ -1,14 +1,29 @@
- var textState = TextFieldValue("") 
 OutlinedTextField(
-        value = textState,
-        onValueChange = { newText -> textState = newText },
-        label = { Text("Your Label") },
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = Color(0xFF6200EE), // Focused border color (e.g., Purple)
-            unfocusedBorderColor = Color.Gray,      // Unfocused border color (e.g., Gray)
-            focusedLabelColor = Color(0xFF6200EE),  // Focused label color (e.g., Purple)
-            unfocusedLabelColor = Color.Gray,       // Unfocused label color (e.g., Gray)
-            cursorColor = Color(0xFF6200EE),        // Cursor color (e.g., Purple)
-        ),
-        modifier = Modifier.padding(16.dp)
-    )
+                        value = usernameField,
+                        onValueChange = { usernameField = it },
+                        singleLine = true,
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Person,
+                                contentDescription = null,
+                                tint = focusedColor
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = "USERNAME",
+                                color = unfocusedColor,
+                                fontWeight = FontWeight.W300
+                            )
+                                },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = focusedColor,
+                            unfocusedBorderColor = unfocusedColor,
+                            focusedLabelColor = focusedColor,
+                            unfocusedLabelColor = unfocusedColor,
+                            cursorColor = focusedColor,
+                            focusedTextColor = focusedColor,
+                            unfocusedTextColor = unfocusedColor
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
