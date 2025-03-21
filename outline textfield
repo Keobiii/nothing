@@ -1,0 +1,14 @@
+ var textState = TextFieldValue("") 
+OutlinedTextField(
+        value = textState,
+        onValueChange = { newText -> textState = newText },
+        label = { Text("Your Label") },
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = Color(0xFF6200EE), // Focused border color (e.g., Purple)
+            unfocusedBorderColor = Color.Gray,      // Unfocused border color (e.g., Gray)
+            focusedLabelColor = Color(0xFF6200EE),  // Focused label color (e.g., Purple)
+            unfocusedLabelColor = Color.Gray,       // Unfocused label color (e.g., Gray)
+            cursorColor = Color(0xFF6200EE),        // Cursor color (e.g., Purple)
+        ),
+        modifier = Modifier.padding(16.dp)
+    )
