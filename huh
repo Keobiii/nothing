@@ -1,28 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:quickalert/quickalert.dart';
 
-class MyWidget extends StatefulWidget {
-   final context context;
-  final String text;
-  final QuickAlertType? quickAlertType;
-
-  const MyWidget({super.key});
+class QuickAlertManager extends StatefulWidget {
+  const QuickAlertManager({Key? key}) : super(key: key);
 
   @override
-  State<MyWidget> createState() => _MyWidgetState();
+  _QuickAlertManagerState createState() => _QuickAlertManagerState();
 }
 
-class _MyWidgetState extends State<MyWidget> {
+class _QuickAlertManagerState extends State<QuickAlertManager> {
+  // You could technically use state here, but it's unnecessary for this use case.
+  
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Container(); // No UI needed here
+  }
+
+  // This function could still show the QuickAlert, but no state is involved.
+  void showQuickAlert({
+    required BuildContext context,
+    required QuickAlertType alertType,
+    required String text,
+  }) {
     QuickAlert.show(
-          context: context, 
-          type: quickAlertType,
-          text: "Sample"
-        );
+      context: context,
+      type: alertType,
+      text: text,
     );
-    
-   
   }
 }
