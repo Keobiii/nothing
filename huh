@@ -1,7 +1,62 @@
+import 'package:basic_flutter/pages/ListPage.dart';
+import 'package:basic_flutter/pages/LoginPage.dart';
+import 'package:basic_flutter/pages/ProfilePage.dart';
+import 'package:basic_flutter/pages/SignUpPage.dart';
+import 'package:basic_flutter/pages/ErrorPage.dart';
+import 'package:basic_flutter/pages/homepage.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'profile_page.dart';
-import 'add_cart_page.dart';
+
+final GoRouter appRouter = GoRouter(
+  initialLocation: '/login', // Default initial location
+  routes: [
+    // Login route
+    GoRoute(
+      name: '/login',
+      path: '/login',
+      builder: (context, state) => LoginPage(),
+    ),
+    
+    // Signup route
+    GoRoute(
+      name: '/signup',
+      path: '/signup',
+      builder: (context, state) => SignupPage(),
+    ),
+    
+    // Home route
+    GoRoute(
+      name: '/home',
+      path: '/home',
+      builder: (context, state) => HomePage(),
+    ),
+    
+    // Profile route
+    GoRoute(
+      name: '/profile',
+      path: '/profile',
+      builder: (context, state) => ProfilePage(),
+    ),
+    
+    // Add Cart route
+    GoRoute(
+      name: '/add_cart',
+      path: '/add_cart',
+      builder: (context, state) => ListPage(),
+    ),
+  ],
+  errorBuilder: (context, state) => ErrorPage(
+    message: 'Page not found: ${state.uri.toString()}',
+  ),
+);
+
+
+
+
+import 'package:basic_flutter/pages/ListPage.dart';
+import 'package:basic_flutter/pages/ProfilePage.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -34,11 +89,11 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Center(
         child: _selectedIndex == 0
-            ? HomePage() // Home page content
+            ? HomePage()
             : _selectedIndex == 1
-                ? ProfilePage() // Profile page content
+                ? ProfilePage() 
                 : _selectedIndex == 2
-                    ? AddCartPage() // Add cart page content
+                    ? ListPage() 
                     : Center(child: Text('Error: Page not found')),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -62,3 +117,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
+
+
+in LoginPage
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // context.go('/first');
+                              // if (_formKey.currentState!.validate()) {
+                              //   context.go('/first');
+                              //   // ScaffoldMessenger.of(context).showSnackBar(
+                              //   //   const SnackBar(content: Text('Processing Data')),
+                              //   // );
+                                
+                              // }
+
+                              // _showQuickAlert(context);
+                              
+                                context.pushNamed('/home');
+                            },
