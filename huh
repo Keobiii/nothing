@@ -1,52 +1,8 @@
-import 'package:basic_flutter/pages/ListPage.dart';
-import 'package:basic_flutter/pages/LoginPage.dart';
-import 'package:basic_flutter/pages/ProfilePage.dart';
-import 'package:basic_flutter/pages/SignUpPage.dart';
-import 'package:basic_flutter/pages/ErrorPage.dart';
-import 'package:basic_flutter/pages/homepage.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-
-final GoRouter appRouter = GoRouter(
-  initialLocation: '/login',
-  routes: [
-    GoRoute(
-      name: 'login',  // Define a name for the route
-      path: '/login',
-      builder: (context, state) => LoginPage(),
-    ),
-    GoRoute(
-      name: 'signup',  // Define a name for the route
-      path: '/signup',
-      builder: (context, state) => SignupPage(),
-    ),
-    GoRoute(
-      name: 'home',  // Define a name for the route
-      path: '/home',
-      builder: (context, state) => HomePage(),
-    ),
-    GoRoute(
-      name: 'profile',  // Define a name for the route
-      path: '/profile',
-      builder: (context, state) => ProfilePage(),
-    ),
-    GoRoute(
-      name: 'add_cart',  // Define a name for the route
-      path: '/add_cart',
-      builder: (context, state) => ListPage(),
-    ),
-  ],
-  errorBuilder: (context, state) => ErrorPage(
-    message: 'Page not found: ${state.uri.toString()}',
-  ),
-);
-
-
-import 'package:basic_flutter/pages/HomePage.dart';
-import 'package:basic_flutter/pages/ListPage.dart';
-import 'package:basic_flutter/pages/ProfilePage.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:basic_flutter/pages/HomePage.dart'; 
+import 'package:basic_flutter/pages/ProfilePage.dart'; 
+import 'package:basic_flutter/pages/SettingsPage.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 class Navigation extends StatefulWidget {
   const Navigation({super.key});
@@ -58,55 +14,54 @@ class Navigation extends StatefulWidget {
 class _NavigationState extends State<Navigation> {
   int _selectedIndex = 0;
 
-  // List of routes for navigation
-  final List<String> _routes = ['/home', '/profile', '/add_cart'];
+  
+  final List<Widget> _pages = [
+    HomePage(),     
+    ProfilePage(),  
+    SettingsPage(), 
+  ];
 
-  // Function to handle bottom navigation change
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-
-    // Navigate to the corresponding route using GoRouter
-    context.go(_routes[index]);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Home Page'),
+      appBar: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Hi Keobi!'
+          ),
+          Icon(
+            icon: Icon(Iconsax.user)
+          ),
+        ],
       ),
-      body: Center(
-        child: _selectedIndex == 0
-            ? HomePage()
-            : _selectedIndex == 1
-                ? ProfilePage() 
-                : _selectedIndex == 2
-                    ? ListPage() 
-                    : Center(child: Text('Error: Page not found')),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+      body: _pages[_selectedIndex], 
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: _onItemTapped,
+        destinations: [
+          NavigationDestination(
+            icon: Icon(Iconsax.home),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+          NavigationDestination(
+            icon: Icon(Iconsax.user),
             label: 'Profile',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Add Cart',
+          NavigationDestination(
+            icon: Icon(Iconsax.setting),
+            label: 'Settings',
           ),
         ],
       ),
     );
   }
 }
-
-
-
