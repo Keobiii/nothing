@@ -8,39 +8,30 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/login', // Default initial location
+  initialLocation: '/login',
   routes: [
-    // Login route
     GoRoute(
-      name: '/login',
+      name: 'login',  // Define a name for the route
       path: '/login',
       builder: (context, state) => LoginPage(),
     ),
-    
-    // Signup route
     GoRoute(
-      name: '/signup',
+      name: 'signup',  // Define a name for the route
       path: '/signup',
       builder: (context, state) => SignupPage(),
     ),
-    
-    // Home route
     GoRoute(
-      name: '/home',
+      name: 'home',  // Define a name for the route
       path: '/home',
       builder: (context, state) => HomePage(),
     ),
-    
-    // Profile route
     GoRoute(
-      name: '/profile',
+      name: 'profile',  // Define a name for the route
       path: '/profile',
       builder: (context, state) => ProfilePage(),
     ),
-    
-    // Add Cart route
     GoRoute(
-      name: '/add_cart',
+      name: 'add_cart',  // Define a name for the route
       path: '/add_cart',
       builder: (context, state) => ListPage(),
     ),
@@ -51,21 +42,20 @@ final GoRouter appRouter = GoRouter(
 );
 
 
-
-
+import 'package:basic_flutter/pages/HomePage.dart';
 import 'package:basic_flutter/pages/ListPage.dart';
 import 'package:basic_flutter/pages/ProfilePage.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class Navigation extends StatefulWidget {
+  const Navigation({super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _NavigationState createState() => _NavigationState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _NavigationState extends State<Navigation> {
   int _selectedIndex = 0;
 
   // List of routes for navigation
@@ -120,19 +110,3 @@ class _HomePageState extends State<HomePage> {
 
 
 
-in LoginPage
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // context.go('/first');
-                              // if (_formKey.currentState!.validate()) {
-                              //   context.go('/first');
-                              //   // ScaffoldMessenger.of(context).showSnackBar(
-                              //   //   const SnackBar(content: Text('Processing Data')),
-                              //   // );
-                                
-                              // }
-
-                              // _showQuickAlert(context);
-                              
-                                context.pushNamed('/home');
-                            },
