@@ -1,90 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:quickalert/quickalert.dart';
 
-class CustomTextField extends StatelessWidget {
-  final TextEditingController? controller;
-  final String labelText;
-  final IconData icon;
-  final TextInputType? keyboardType;
-  final bool isPassword;
-  final FormFieldValidator validator;
+class MyWidget extends StatefulWidget {
+   final context context;
+  final String text;
+  final QuickAlertType? quickAlertType;
 
-
-  const CustomTextField({
-    super.key,
-    this.controller,
-    required this.labelText,
-    required this.icon,
-    this.keyboardType,
-    this.isPassword = false,
-    required this.validator,
-    
-  });
-
-
+  const MyWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        obscureText: isPassword,
-        validator: validator,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14
-        ),
-        cursorColor: Colors.white, 
-        decoration: InputDecoration(
-          labelText: labelText,
-          labelStyle: const TextStyle(
-            color: Color(0x80FFFFFF),
-            fontSize: 14
-          ),
-          floatingLabelStyle: const TextStyle(
-            color: Colors.white,
-            fontSize: 16
-          ), 
-          prefixIcon: Icon(
-            icon, 
-            color: Colors.white,
-            size: 20,
-          ), 
-          if(isPassword) {
-            suffixIcon: IconButton(
-              icon: Icon(
-                isPassword
-                ? Icons.visibility
-                : Icons.visibility_off,
-                color: Theme.of(context).primaryColorDark,
-              ),
-              onPressed: () {
-                setState(() {
-                  isPassword = !isPassword;
-                });
-              },
-            ),
-          }
+  State<MyWidget> createState() => _MyWidgetState();
+}
 
-          hintStyle: const TextStyle(
-            color: Color(0x80FFFFFF),
-            fontSize: 14
-          ), 
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
-            borderSide: const BorderSide(color: Color(0x80FFFFFF)), 
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
-            borderSide: const BorderSide(color: Color(0x80FFFFFF)), 
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
-            borderSide: const BorderSide(color: Colors.white, width: 2), 
-          ),
-        ),
-      ),
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+    QuickAlert.show(
+          context: context, 
+          type: quickAlertType,
+          text: "Sample"
+        );
     );
+    
+   
   }
 }
