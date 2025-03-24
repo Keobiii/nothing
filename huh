@@ -1,157 +1,48 @@
-import 'package:basic_flutter/widget/customize_textfield.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatefulWidget {
-  @override
-  State<HomePage> createState() => _HomePageState();
-
-}
-
-class _HomePageState extends State<HomePage> {
-  var _firstName;
-  var _middleInitial;
-  var _lastName;
-  var _age;
-  var _birthdate;
-  var _address;
-  var _course;
-
-  final _firstNameController = TextEditingController();
-  final _middleInitialController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _ageController = TextEditingController();
-  final _birthdateController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _courseController = TextEditingController();
-
-  // input validation
-  final _formKey = GlobalKey<FormState>();
-
-   @override
-  void initState() {
-    super.initState();
-
-    _firstNameController.addListener(_updateUseForm);
-    _middleInitialController.addListener(_updateUseForm);
-    _lastNameController.addListener(_updateUseForm);
-    _ageController.addListener(_updateUseForm);
-    _birthdateController.addListener(_updateUseForm);
-    _addressController.addListener(_updateUseForm);
-    _courseController.addListener(_updateUseForm);
-
-
-  }
-
-  void _updateUseForm() {
-    setState(() {
-      _firstName = _firstNameController.text;
-      _middleInitial = _middleInitialController.text;
-      _lastName = _lastNameController.text;
-      _age = _ageController.text;
-      _birthdate = _birthdateController.text;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-     body: Form(
-      key: _formKey,
-       child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CustomTextField(controller: _firstNameController, hintText: "First Name", icon: Icons.person),
-              CustomTextField(controller: _middleInitialController, hintText: "Middle Initial", icon: Icons.person),
-              CustomTextField(controller: _lastNameController, hintText: "Last Name", icon: Icons.person),
-            ],
-          ),
-          SizedBox(height: 20,),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CustomTextField(controller: _birthdateController, hintText: "Birth Date", icon: Icons.person),
-              CustomTextField(controller: _ageController, hintText: "Age", icon: Icons.person),
-            ],
-          ),
-
-           SizedBox(height: 20,),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CustomTextField(controller: _addressController, hintText: "Address", icon: Icons.person),
-            ],
-          ),
-
-           SizedBox(height: 20,),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CustomTextField(controller: _courseController, hintText: "Course", icon: Icons.person),
-            ],
-          ),
-        ],
-       
-       ),
-     ),
-    );
-  }
-}
-
-
-import 'package:flutter/material.dart';
-
-class CustomTextField extends StatefulWidget {
+class CustomTextField extends StatelessWidget {
   final TextEditingController? controller;
   final String hintText;
   final IconData icon;
+  final TextInputType? keyboardType;
+  final FormFieldValidator validator;
 
   const CustomTextField({
     required this.controller,
     required this.hintText,
-    required this.icon
+    required this.icon,
+     this.keyboardType,
+    required this.validator,
   });
 
   @override
-  _CustomTextFieldState createState() => _CustomTextFieldState();
-}
-
-class _CustomTextFieldState extends State<CustomTextField> {
-  @override
   Widget build(BuildContext context) {
     return Container(
-      width: 180,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: TextField(
-        controller: widget.controller,
+        controller: controller,
+        keyboardType: keyboardType,
+        validator: validator,
         decoration: InputDecoration(
           prefixIcon: Icon(
-            widget.icon,
-            color: Colors.white,
+            icon,
+            color: const Color.fromARGB(255, 0, 0, 0),
             size: 30,
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.grey[600]!),
-            borderRadius: BorderRadius.circular(4),
+            borderSide: BorderSide(color: Color(0x80FFFFFF)),
+            borderRadius: BorderRadius.circular(10),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.grey[600]!),
-            borderRadius: BorderRadius.circular(4),
+            borderSide: BorderSide(color: Color(0x80FFFFFF)),
+            borderRadius: BorderRadius.circular(10),
           ),
-          fillColor: Colors.blueGrey,
+          fillColor: Color(0xFF777777),
           filled: true,
-          hintText: widget.hintText,
-          hintStyle: TextStyle(color: Colors.grey),
+          hintText: hintText,
+          hintStyle: TextStyle(color: const Color.fromARGB(255, 255, 255, 255)),
         ),
       ),
     );
   }
 }
-
-
