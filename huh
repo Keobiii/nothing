@@ -1,67 +1,35 @@
-import 'package:flutter/material.dart';
-import 'package:basic_flutter/pages/HomePage.dart'; 
-import 'package:basic_flutter/pages/ProfilePage.dart'; 
-import 'package:basic_flutter/pages/SettingsPage.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
-
-class Navigation extends StatefulWidget {
-  const Navigation({super.key});
-
-  @override
-  _NavigationState createState() => _NavigationState();
-}
-
-class _NavigationState extends State<Navigation> {
-  int _selectedIndex = 0;
-
-  
-  final List<Widget> _pages = [
-    HomePage(),     
-    ProfilePage(),  
-    SettingsPage(), 
-  ];
-
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            'Hi Keobi!'
+appBar: PreferredSize(
+        preferredSize: Size.fromHeight(80),
+        child: AppBar(
+          backgroundColor: Color.fromARGB(255, 35, 80, 215),
+          elevation: 5.0,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,  
+            crossAxisAlignment: CrossAxisAlignment.center, 
+            children: [
+              Text(
+                'Hello, Keobi!',
+                style: GoogleFonts.montserrat(
+                  textStyle: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 22,
+                  )
+                ),
+              ),
+              ClipOval(
+                child: Container(
+                  color: Colors.red,
+                  height: 40, 
+                  width: 40,
+                  child: Image.asset(
+                    'assets/nobita.png', 
+                    fit: BoxFit.cover, 
+                  ),
+                ),
+              ),
+            ],
           ),
-          Icon(
-            icon: Icon(Iconsax.user)
-          ),
-        ],
+        ),
       ),
-      body: _pages[_selectedIndex], 
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: _onItemTapped,
-        destinations: [
-          NavigationDestination(
-            icon: Icon(Iconsax.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Iconsax.user),
-            label: 'Profile',
-          ),
-          NavigationDestination(
-            icon: Icon(Iconsax.setting),
-            label: 'Settings',
-          ),
-        ],
-      ),
-    );
-  }
-}
+      
