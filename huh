@@ -1,52 +1,35 @@
-class Btn {
-  static const String clr = "AC";
-  static const String del = "C";
-  static const String per = "%";
-  static const String multiply = "×";
-  static const String divide = "÷";
-  static const String add = "+";
-  static const String subtract = "-";
-  static const String calculate = "=";
-  static const String dot = ".";
+  Widget build(BuildContext context) {
+    // get screen size
+    final screenSize = MediaQuery.of(context).size;
+    return Scaffold(
+      body: SafeArea(
+        bottom: true ,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // output
+            SingleChildScrollView(
+                // children start to top
+                // reverse to make on the bottom
+                reverse: false,
+                child: Container(
+                  color: Colors.black,
+                  alignment: Alignment.bottomRight,
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    "$number1$operand$number2".isEmpty
+                      ? "0" 
+                      : "$number1$operand$number2",
+                    style: const TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold
+                  ),
+                  textAlign: TextAlign.end,
+                  ),
+                ),
+              ),
 
-  static const String n0 = "0";
-  static const String n1 = "1";
-  static const String n2 = "2";
-  static const String n3 = "3";
-  static const String n4 = "4";
-  static const String n5 = "5";
-  static const String n6 = "6";
-  static const String n7 = "7";
-  static const String n8 = "8";
-  static const String n9 = "9";
-
-  static const List<String> buttonValues = [
-    clr,
-    del,
-    per,
-    multiply,
-    n7,
-    n8,
-    n9,
-    divide,
-    n4,
-    n5,
-    n6,
-    subtract,
-    n1,
-    n2,
-    n3,
-    add,
-    n0,
-    dot,
-    calculate,
-  ];
-}
-
-
-
-
-
+            // buttons
             Wrap(
               children: Btn.buttonValues
               .map(
@@ -58,29 +41,8 @@ class Btn {
               )
               .toList(),
             ),
-
-  Widget buildButton(value) {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Material(
-        color: getBtnColor(value),
-        clipBehavior: Clip.hardEdge, // disable ripple effect from outside
-        shape: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white24),
-          borderRadius: BorderRadius.circular(100)),
-        child: InkWell(
-          onTap: () => onBtnTap(value),
-          child: Center(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24
-              ),
-            )
-          ),
+          ],
         ),
       ),
     );
   }
-
