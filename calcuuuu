@@ -1,0 +1,350 @@
+import 'package:calculator/button_values.dart';
+import 'package:flutter/material.dart';
+
+class CalculatorScreen extends StatefulWidget {
+  const CalculatorScreen({super.key});
+
+  @override
+  State<CalculatorScreen> createState() => _CalculatorScreenState();
+}
+
+class _CalculatorScreenState extends State<CalculatorScreen> {
+  String number1 = ""; // . 0-9
+  String operand = ""; // . + - * /
+  String number2 = ""; // . 0-9
+
+  bool isSnackVisible = false;
+
+  void _showSnackbar(String title, Color) {
+    if (isSnackVisible) {
+      // Show Snackbar only if the boolean is true
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.black,
+          content: Text(
+            title,
+            style: TextStyle(
+              color: Color,
+              fontWeight: FontWeight.w500,
+              fontSize: 18,
+            ),
+          ),
+        ),
+      );
+
+      // Optionally, reset the boolean to false after showing the Snackbar
+      setState(() {
+        isSnackVisible = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // get screen size
+    final screenSize = MediaQuery.of(context).size;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Icon(Icons.menu, color: Colors.orange, size: 30),
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // output
+          Container(
+            height: screenSize.height * 0.32,
+            alignment: Alignment.bottomRight,
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              "$number1$operand$number2".isEmpty
+                  ? ""
+                  : "$number1$operand$number2",
+              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.end,
+            ),
+          ),
+
+          // buttons
+          Container(
+            height: screenSize.height * 0.58,
+            // color: Colors.red,
+            child: Wrap(
+              runSpacing: 4.0,
+              children:
+                  Btn.buttonValues
+                      .map(
+                        (value) => SizedBox(
+                          width: screenSize.width / 4,
+                          height: 100,
+                          child: buildButton(value),
+                        ),
+                      )
+                      .toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // #######
+  Widget buildButton(value) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Material(
+        color: getBtnColor(value),
+        clipBehavior: Clip.antiAlias,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: () => onBtnTap(value),
+          child: Center(
+            child: modifiedBtnValue(value),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void onBtnTap(String value) {
+    // if (value == Btn.del) {
+    //   delete();
+    //   return;
+    // }
+
+    if (value == Btn.xop) {
+      oppositeSign();
+      return;
+    }
+
+    if (value == Btn.clr) {
+      clearAll();
+      return;
+    }
+
+    if (value == Btn.per) {
+      convertToPercentage();
+      return;
+    }
+
+    if (value == Btn.calculate) {
+      calculate();
+      return;
+    }
+
+    if (value == Btn.at) {
+      isSnackVisible = true;
+      _showSnackbar("Rawr! SnackBar Triggered", Colors.white);
+      return;
+    }
+
+    appendValue(value);
+  }
+
+  // calculates the result
+  void calculate() {
+    if (number1.isEmpty) return;
+    if (operand.isEmpty) return;
+    if (number2.isEmpty) return;
+
+    final double num1 = double.parse(number1);
+    final double num2 = double.parse(number2);
+
+    var result = 0.0;
+    switch (operand) {
+      case Btn.add:
+        result = num1 + num2;
+        break;
+
+      case Btn.subtract:
+        result = num1 - num2;
+        break;
+
+      case Btn.multiply:
+        result = num1 * num2;
+        break;
+
+      case Btn.divide:
+        result = num1 / num2;
+        break;
+
+      default:
+    }
+
+    setState(() {
+      number1 = "$result";
+
+      if (number1.endsWith(".0")) {
+        number1 = number1.substring(0, number1.length - 2);
+      }
+
+      operand = "";
+      number2 = "";
+    });
+  }
+
+  // converts output to percentage
+  void convertToPercentage() {
+    print("convertToPercentage called");
+    if (number1.isNotEmpty && operand.isNotEmpty && number2.isNotEmpty) {
+      // Calculate before conversion
+
+      print("calculation called");
+      calculate();
+    }
+
+    if (operand.isNotEmpty) {
+      // Cannot be converted
+
+      print("operand called");
+      return;
+    }
+
+    try {
+      final number = double.parse(number1);
+      setState(() {
+        number1 = "${(number / 100)}";
+        if (number1.endsWith(".0")) {
+          number1 = number1.substring(0, number1.length - 2);
+        }
+
+        operand = "";
+        number2 = "";
+      });
+    } catch (e) {
+      isSnackVisible = true;
+      _showSnackbar("Invalid input", Colors.red);
+      print("Error parsing number1: $e");
+    }
+  }
+
+  void oppositeSign() {
+    if (number1.isNotEmpty && operand.isNotEmpty && number2.isNotEmpty) {
+      // calculate before conversion
+      calculate();
+    }
+
+    if (operand.isNotEmpty) {
+      return;
+    }
+
+    try {
+      final number = double.parse(number1);
+      setState(() {
+        final result = number * -1;
+        print("Result: " + result.toString());
+        if (result.toString().endsWith(".0")) {
+          number1 = "${result.toInt()}";
+        } else {
+          number1 = result.toString();
+        }
+
+        operand = "";
+        number2 = "";
+      });
+    } catch (e) {}
+
+    try {
+      final number = double.parse(number1);
+      print("Number: " + number.toString());
+
+      setState(() {
+        final result = number * -1;
+        if (result.toString().endsWith(".0")) {
+          number1 = "${result.toInt()}";
+          print("Number 1: " + number1.toString());
+        }
+
+        operand = "";
+        number2 = "";
+      });
+    } catch (e) {
+      isSnackVisible = true;
+      _showSnackbar("Invalid input", Colors.red);
+      print("Error parsing number1: $e");
+    }
+  }
+
+  // clear all
+  void clearAll() {
+    setState(() {
+      number1 = "";
+      operand = "";
+      number2 = "";
+    });
+  }
+
+  // Delete on from end
+  void delete() {
+    if (number2.isNotEmpty) {
+      // 1234 => 123
+      number2 = number2.substring(0, number2.length - 1);
+    } else if (operand.isNotEmpty) {
+      operand = "";
+    } else if (number1.isNotEmpty) {
+      number1 = number1.substring(0, number1.length - 1);
+    }
+
+    setState(() {});
+  }
+
+  void appendValue(String value) {
+    if (value != Btn.dot && int.tryParse(value) == null) {
+      // If the number1 is not empty and operand is empty,
+      // assign value for the operator
+      if (operand.isNotEmpty && number2.isNotEmpty) {
+        calculate();
+      }
+      operand = value;
+    } else if (number1.isEmpty || operand.isEmpty) {
+      // remain the value once the number1 is already . in the value
+      if (value == Btn.dot && number1.contains(Btn.dot)) return;
+      // return "0." instead of "." to ensure the decimals in the value
+      if (value == Btn.dot && (number1.isEmpty || number1 == Btn.n0)) {
+        number1 = "0.";
+      } else {
+        number1 += value;
+      }
+    }
+    // same function above
+    else if (number2.isEmpty || operand.isNotEmpty) {
+      if (value == Btn.dot && number2.contains(Btn.dot)) return;
+      if (value == Btn.dot && (number2.isEmpty || number2 == Btn.n0)) {
+        number2 = "0.";
+      } else {
+        number2 += value;
+      }
+    }
+
+    setState(() {});
+  }
+
+  Color getBtnColor(value) {
+    return [Btn.xop, Btn.clr, Btn.per].contains(value)
+        ? const Color.fromARGB(255, 107, 107, 107)
+        : [
+          Btn.multiply,
+          Btn.add,
+          Btn.subtract,
+          Btn.divide,
+          Btn.calculate,
+        ].contains(value)
+        ? const Color.fromARGB(255, 253, 154, 5)
+        : Color.fromARGB(255, 60, 60, 60);
+  }
+}
+
+modifiedBtnValue(value) {
+  if (value == "@") {
+    return Padding(
+      padding: const EdgeInsets.all(15.0),
+      child: Image.asset('assets/calculator.png'),
+    );
+  } else {
+    return Text(
+      value,
+      style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 35),
+    );
+  }
+}
