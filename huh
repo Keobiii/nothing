@@ -1,69 +1,32 @@
-  Widget buildButton(value) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Material(
-        color: getBtnColor(value),
-        // ripple effects
-        clipBehavior: Clip.hardEdge,
-        shape: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white24),
-          borderRadius: BorderRadius.circular(50)),
-        child: InkWell(
-          onTap: () => onBtnTap(value),
-          child: Center(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24
-              ),
-            )
-          ),
-        ),
-      ),
-    );
+  void appendValue(String value) {
+    // number1 operand number2
+    // 234       +      345
+
+    if (value != Btn.dot && int.tryParse(value) == null) {
+      //
+      if (operand.isNotEmpty && number2.isNotEmpty) {
+        calculate();
+      }
+      operand = value;
+    }
+    // assign value to number1 variable
+    else if (number1.isEmpty || operand.isEmpty) {
+      if (value == Btn.dot && number1.contains(Btn.dot)) return;
+      if (value == Btn.dot && (number1.isEmpty || number1 == Btn.n0)) {
+        value = "0.";
+      }
+
+      number1 += value;
+    } else if (number2.isEmpty || operand.isNotEmpty) {
+      // check if value is "."
+      if (value == Btn.dot && number2.contains(Btn.dot)) return;
+      if (value == Btn.dot && (number2.isEmpty || number2 == Btn.n0)) {
+        // number2 = """ | "0"
+        value = "0.";
+      }
+
+      number2 += value;
+    }
+
+    setState(() {});
   }
-
-
-    return Scaffold(
-      body: SafeArea(
-        bottom: false ,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // output
-            Container(
-              height: screenSize.height * 0.5,
-                  color: Colors.black,
-                  alignment: Alignment.bottomRight,
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    "$number1$operand$number2".isEmpty
-                      ? "0" 
-                      : "$number1$operand$number2",
-                    style: const TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold
-                  ),
-                  textAlign: TextAlign.end,
-                  ),
-                ),
-
-            // buttons
-            Container(
-              child: Wrap(
-                children: Btn.buttonValues
-                .map(
-                  (value) => SizedBox(
-                    width: value==Btn.n0 ? screenSize.width/2 : screenSize.width/4, // 4 in the row
-                    height: screenSize.width/5, // 5 in the row column
-                    child: buildButton(value)
-                    ),
-                )
-                .toList(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
