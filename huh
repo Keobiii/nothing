@@ -1,32 +1,24 @@
-  void appendValue(String value) {
-    // number1 operand number2
-    // 234       +      345
-
-    if (value != Btn.dot && int.tryParse(value) == null) {
-      //
-      if (operand.isNotEmpty && number2.isNotEmpty) {
-        calculate();
-      }
-      operand = value;
-    }
-    // assign value to number1 variable
-    else if (number1.isEmpty || operand.isEmpty) {
-      if (value == Btn.dot && number1.contains(Btn.dot)) return;
-      if (value == Btn.dot && (number1.isEmpty || number1 == Btn.n0)) {
-        value = "0.";
-      }
-
-      number1 += value;
-    } else if (number2.isEmpty || operand.isNotEmpty) {
-      // check if value is "."
-      if (value == Btn.dot && number2.contains(Btn.dot)) return;
-      if (value == Btn.dot && (number2.isEmpty || number2 == Btn.n0)) {
-        // number2 = """ | "0"
-        value = "0.";
-      }
-
-      number2 += value;
+  void convertToPercentage() { 
+    if (number1.isNotEmpty && operand.isNotEmpty && number2.isNotEmpty) {
+      // calculate before conversion
+      // TODO
+  
+      calculate();
     }
 
-    setState(() {});
+    if (operand.isNotEmpty) {
+      // cannot be converted
+      return;
+    }
+    
+    if (number1 != null) {
+
+          final number = double.parse(number1);
+    setState(() {
+      number1 = "${(number / 100)}";
+      operand = "";
+      number2 = "";
+    });
+    }
+
   }
