@@ -1,209 +1,22 @@
-class _CalculatorScreenState extends State<CalculatorScreen> {
-  String number1 = "";
-  String operand = "";
-  String number2 = ""; 
-
-  String equation = "";
-
-  bool isSnackVisible = false;
-
-  void _showSnackbar(String title, Color) {
-    if (isSnackVisible) {
-      // Show Snackbar only if the boolean is true
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.black,
-          content: Text(
-            title,
-            style: TextStyle(
-              color: Color,
-              fontWeight: FontWeight.w500,
-              fontSize: 18,
-            ),
-          ),
-        ),
-      );
-
-      // Optionally, reset the boolean to false after showing the Snackbar
-      setState(() {
-        isSnackVisible = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // get screen size
-    final screenSize = MediaQuery.of(context).size;
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Icon(Icons.menu, color: Colors.orange, size: 30),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // output
-          Container(
-            height: screenSize.height * 0.32,
-            alignment: Alignment.bottomRight,
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              equation,
-              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.end,
-            ),
-          ),
-
-          // buttons
-          Container(
-            height: screenSize.height * 0.58,
-            // color: Colors.red,
-            child: Wrap(
-              runSpacing: 4.0,
-              children:
-                  Btn.buttonValues
-                      .map(
-                        (value) => SizedBox(
-                          width: screenSize.width / 4,
-                          height: 100,
-                          child: buildButton(value),
-                        ),
-                      )
-                      .toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // #######
-  Widget buildButton(value) {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Material(
-        color: getBtnColor(value),
-        clipBehavior: Clip.antiAlias,
-        shape: const CircleBorder(),
-        child: InkWell(
-          onTap: () => onBtnTap(value),
-          child: Center(
-            child: modifiedBtnValue(value),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void onBtnTap(String value) {
-    // if (value == Btn.del) {
-    //   delete();
-    //   return;
-    // }
-
-    if (value == Btn.xop) {
-      oppositeSign();
-      return;
-    }
-
-    if (value == Btn.clr) {
-      clearAll();
-      return;
-    }
-
-    if (value == Btn.per) {
-      convertToPercentage();
-      return;
-    }
-
-    if (value == Btn.calculate) {
-      // calculate();
-      // number1 = convertToDouble();
-      
-      setState(() {
-        equation = convertToDouble(); // This will update the UI with the result
-      });
-      return;
-    }
-
-    if (value == Btn.at) {
-      isSnackVisible = true;
-      _showSnackbar("Rawr! SnackBar Triggered", Colors.white);
-      return;
-    }
-
-    // appendValue(value);
-    equation = storeValues(value);
-  }
-
   String storeValues(String value){
+    String last_val = "";
+
+    if (equation.length > 1) {
+      last_val = equation[equation.length - 1];
+
+      if (last_val == RegExp(r'[+\-*/]') && value == RegExp(r'[+\-*/]')) {
+        value += "";
+      }
+    }
+
+
+    
+    print("Last Equation: " + last_val);
+
+    if (value == "/") {
+      value = "÷";
+    }
     equation += value;
     print("Display: " + equation);
     return equation;
-  }
-
-  String convertToDouble() {
-    print("Equation: " + equation);
-
-    var result = 0.0;
-    var curr_number = 0.0;
-    var curr_operator = '+';
-    var i = 0;
-
-    while (i < equation.length) {
-      var ch = equation[i];
-
-    
-      if (int.tryParse(ch) != null || ch == '.') {
-        var temp = ch.toString();
-        i++;
-
-        
-        while (i < equation.length &&
-            (int.tryParse(equation[i]) != null || equation[i] == '.')) {
-          temp += equation[i];
-          i++;
-        }
-        curr_number = double.parse(temp);
-        i--; 
-      }
-
-    
-      if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || i == equation.length - 1) {
-        switch (curr_operator) {
-          case '+':
-            result += curr_number;
-            break;
-          case '-':
-            result -= curr_number;
-            break;
-          case '*':
-            result *= curr_number;
-            break;
-          case '/':
-            if (curr_number == 0.0) {
-              return "Undefined"; 
-            } else {
-              result /= curr_number;
-            }
-            break;
-          default:
-        }
-
-        if (ch != ' ') {
-          curr_operator = ch;
-        }
-        curr_number = 0.0;
-      }
-      i++;
-    }
-
- 
-    var wholeNumber = result % 1 == 0.0 ? result.toInt() : result;
-    print("Result: $wholeNumber");
-
-    
-    return wholeNumber.toString();
   }
