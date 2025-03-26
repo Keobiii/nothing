@@ -1,7 +1,7 @@
 class _CalculatorScreenState extends State<CalculatorScreen> {
-  String number1 = ""; // . 0-9
-  String operand = ""; // . + - * /
-  String number2 = ""; // . 0-9
+  String number1 = "";
+  String operand = "";
+  String number2 = ""; 
 
   String equation = "";
 
@@ -50,9 +50,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             alignment: Alignment.bottomRight,
             padding: const EdgeInsets.all(16),
             child: Text(
-              "$number1$operand$number2".isEmpty
-                  ? ""
-                  : "$number1$operand$number2",
+              equation,
               style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
               textAlign: TextAlign.end,
             ),
@@ -122,7 +120,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
     if (value == Btn.calculate) {
       // calculate();
-      number1 = convertToDouble();
+      // number1 = convertToDouble();
+      
+      setState(() {
+        equation = convertToDouble(); // This will update the UI with the result
+      });
       return;
     }
 
@@ -133,12 +135,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
 
     // appendValue(value);
-    storeValues(value);
+    equation = storeValues(value);
+  }
+
+  String storeValues(String value){
+    equation += value;
+    print("Display: " + equation);
+    return equation;
   }
 
   String convertToDouble() {
     print("Equation: " + equation);
-    
+
     var result = 0.0;
     var curr_number = 0.0;
     var curr_operator = '+';
@@ -147,50 +155,55 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     while (i < equation.length) {
       var ch = equation[i];
 
+    
       if (int.tryParse(ch) != null || ch == '.') {
         var temp = ch.toString();
         i++;
 
-        while (i < equation.length && (int.tryParse(equation[i]) != null) || equation[i] == '.') {
+        
+        while (i < equation.length &&
+            (int.tryParse(equation[i]) != null || equation[i] == '.')) {
           temp += equation[i];
           i++;
         }
-        curr_number = double.parse(equation);
-        i--;
+        curr_number = double.parse(temp);
+        i--; 
       }
+
+    
       if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || i == equation.length - 1) {
-        switch (ch) {
+        switch (curr_operator) {
           case '+':
             result += curr_number;
-          break;
+            break;
           case '-':
             result -= curr_number;
-          break;
+            break;
           case '*':
             result *= curr_number;
-          break;
+            break;
           case '/':
-            if(curr_number == 0.0) {
-              return "Undefined";
+            if (curr_number == 0.0) {
+              return "Undefined"; 
             } else {
               result /= curr_number;
             }
-          break;        
+            break;
           default:
         }
 
         if (ch != ' ') {
           curr_operator = ch;
         }
-          curr_number = 0.0;
+        curr_number = 0.0;
       }
       i++;
     }
 
-    var wholeNumber;
-    if(result % 1 == 0.0) result.toInt(); else result.toString();
-    print("Result: " + wholeNumber.toString());
+ 
+    var wholeNumber = result % 1 == 0.0 ? result.toInt() : result;
+    print("Result: $wholeNumber");
 
+    
     return wholeNumber.toString();
   }
-  
