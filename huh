@@ -1,24 +1,70 @@
-  void convertToPercentage() { 
-    if (number1.isNotEmpty && operand.isNotEmpty && number2.isNotEmpty) {
-      // calculate before conversion
-      // TODO
-  
-      calculate();
-    }
+  String convertToDouble() {
+    print("Equation: " + equation);
 
-    if (operand.isNotEmpty) {
-      // cannot be converted
-      return;
-    }
+    // 3+4
+    var result = 0.0;
+    var curr_number = 0.0;
+    var curr_operator = '+';
+    var i = 0;
+
+    // List<String> listResult = [];
+
+    while (i < equation.length) {
+      var ch = equation[i];
+
     
-    if (number1 != null) {
+      if (int.tryParse(ch) != null || ch == '.') {
+        var temp = ch.toString();
+        i++;
 
-          final number = double.parse(number1);
-    setState(() {
-      number1 = "${(number / 100)}";
-      operand = "";
-      number2 = "";
-    });
+        
+        while (i < equation.length &&
+            (int.tryParse(equation[i]) != null || equation[i] == '.')) {
+          temp += equation[i];
+          i++;
+        }
+
+        curr_number = double.parse(temp);
+        i--; 
+      }
+
+    
+      if (ch == '+' || ch == '-' || ch == '*' || ch == '÷' || i == equation.length - 1) {
+        switch (curr_operator) {
+          case '+':
+            result += curr_number;
+            break;
+          case '-':
+            result -= curr_number;
+            break;
+          case '*':
+            result *= curr_number;
+            break;
+          case '÷':
+            if (curr_number == 0.0) {
+              print("Undefined");
+              return "Undefined"; 
+              
+            } else {
+              result /= curr_number;
+            }
+            break;
+          default:
+        }
+
+        if (ch != ' ') {
+          curr_operator = ch;
+        }
+        curr_number = 0.0;
+      }
+      i++;
     }
 
+
+ 
+    var wholeNumber = result % 1 == 0.0 ? result.toInt() : result;
+    print("Result: $wholeNumber");
+
+    
+    return wholeNumber.toString();
   }
