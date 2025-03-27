@@ -1,217 +1,61 @@
-class ClearAll extends CalculatorEvent {
-  final String equation;
-
-  ClearAll(this.equation);
-}
-
-class StoreValues extends CalculatorEvent {
-  final String value;
-
-  StoreValues(this.value);
-}
-
-class CalculateEquation extends CalculatorEvent {
-  final String equation;
-
-  CalculateEquation(this.equation);
-}
-
-class ConvertToPercentage extends CalculatorEvent{
-  final String equation;
-
-  ConvertToPercentage(this.equation);
-}
-
-class OppositeSign extends CalculatorEvent{
-  final String equation;
-
-  OppositeSign(this.equation);
-}
-
-
-// Define states
-abstract class CalculatorState {}
-
-class CalculatorInitial extends CalculatorState {}
-
-class CalculatorResult extends CalculatorState {
-  final String result;
-
-  CalculatorResult(this.result);
-}
-
-
-// BLoC class
-class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
-
-  String equation = ""; // Manage the equation here
-
-  CalculatorBloc() : super(CalculatorInitial()) {
-    on<ClearAll>((event, emit) {
-      equation = "";
-      emit(CalculatorResult(equation));
-    });
-
-    on<StoreValues>((event, emit) {
-      String value = event.value;
-
-      
-      if (equation.isEmpty && RegExp(r'[+\-*/]').hasMatch(value)) {
-        value = ""; 
-      }
-      if (equation.isEmpty && value == Btn.n0) {
-        value = ""; 
-      }
-
-      if (equation.isNotEmpty) {
-        String lastVal = equation[equation.length - 1];
-
-        
-        if (RegExp(r'[+\-*/]').hasMatch(lastVal) && RegExp(r'[+\-*/]').hasMatch(value)) {
-          value = ""; 
-        }
-      }
-
-     
-      if (value == "/") {
-        value = "÷";
-      }
-
-     
-      equation += value;
-
-    
-      emit(CalculatorResult(equation));
-    });
-
-    on<CalculateEquation>((event, emit) {
-      var result = 0.0;
-      var curr_number = 0.0;
-      var curr_operator = '+';
-      var i = 0;
-
-      while (i < equation.length) {
-        var ch = equation[i];
-      
-        if (int.tryParse(ch) != null || ch == '.') {
-          var temp = ch.toString();
-          i++;
-
-          while (i < equation.length &&
-            (int.tryParse(equation[i]) != null || equation[i] == '.')) {
-            temp += equation[i];
-            i++;
-          }
-
-          curr_number = double.parse(temp);
-          i--; 
-        }
-
-        if (ch == '+' || ch == '-' || ch == '*' || ch == '÷' || i == equation.length - 1) {
-          switch (curr_operator) {
-            case '+':
-              result += curr_number;
-              break;
-            case '-':
-              result -= curr_number;
-              break;
-            case '*':
-              result *= curr_number;
-              break;
-            case '÷':
-              if (curr_number == 0.0) {
-                equation = "Undefined";
-                // print("Undefined");
-                // return "Undefined"; 
-                emit(CalculatorResult(equation));
-              } else {
-                result /= curr_number;
-              }
-              break;
-            default:
-          }
-        
-          if (ch != ' ') {
-            curr_operator = ch;
-          }
-          curr_number = 0.0;
-        }
-        i++;
-      }
-
-      var wholeNumber = result % 1 == 0.0 ? result.toInt() : result;
-      print("Result: $wholeNumber");
-
-      // return wholeNumber.toString();
-      equation = wholeNumber.toString();
-      emit(CalculatorResult(equation));
-
-    });
-
-    on<ConvertToPercentage>((event, emit) {
-      String equationPass = event.equation;
-      print("convertToPercentage called");
-
-      if (equationPass.isNotEmpty && equationPass.contains(RegExp(r'[+\-*/]'))) {
-        CalculateEquation(equation);
-        // Calculate before conversion
-        print("calculation called");
-        equationPass = equation;
-      }
-
-      try {
-        final number = double.parse(equationPass);
-
-        equation = "${(number / 100)}";
-        print("Equation: $equation");
-        if (equation.endsWith(".0")) {
-          equation = equationPass.substring(0, equation.length - 2);
-        }
-
-
-      } catch (e) {
-        // isSnackVisible = true;
-        // _showSnackbar("Invalid input", Colors.red);
-        print("Error parsing equation: $e");
-      }
-
-      emit(CalculatorResult(equation));
-    });
+  @override
+  Widget build(BuildContext context) {
+    // get screen size
+    final screenSize = MediaQuery.of(context).size;
   
-    on<OppositeSign>((event, emit) {
-      String equationPass = event.equation;
-      print("convertToPercentage called");
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Icon(Icons.menu, color: Colors.orange, size: 30),
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // output
+          Container(
+            color: Colors.red,
+            alignment: Alignment.bottomRight,
+            padding: const EdgeInsets.all(16),
+            child: BlocBuilder<CalculatorBloc, CalculatorState>(
+              builder: (context, state) {
+                if (state is CalculatorResult) {
+                  equation = state.result;
+                  return Text(
+                    state.result,
+                    style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.end,
+                  );
+                }
+                equation = "0";
+                return const Text(
+                  '0',
+                  style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.end,
+                );
+              },
+            ),
+          ),
 
-      if (equationPass.isNotEmpty && equationPass.contains(RegExp(r'[+\-*/]'))) {
-        CalculateEquation(equation);
-        // Calculate before conversion
-        print("calculation called");
-        equationPass = equation;
-      }
-
-    // if (operand.isNotEmpty) {
-    //   return;
-    // }
-
-      try {
-        final number = double.parse(equationPass);
-          final result = number * -1;
-          print("Result: " + result.toString());
-          if (result.toString().endsWith(".0")) {
-            equation = "${result.toInt()}";
-          } else {
-            equation = result.toString();
-          }
-
-
-      } catch (e) {
-        // isSnackVisible = true;
-        // _showSnackbar("Invalid input", Colors.red);
-        print("Error parsing equation: $e"); 
-      }
-
-      emit(CalculatorResult(equation));
-
-    });
+          // buttons
+          Container(
+            color: Colors.blue,
+            child: Wrap(
+              runSpacing: 4.0,
+              children:
+                  Btn.buttonValues
+                      .map(
+                        (value) => SizedBox(
+                          width: screenSize.width / 4,
+                          height: 100,
+                          child: buildButton(value),
+                        ),
+                      )
+                      .toList(),
+            ),
+          ),
+        ],
+      ),
+    );
   }
-}
+  
