@@ -14,6 +14,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   bool isSnackVisible = false;
 
+
   void _showSnackbar(String title, Color) {
     if (isSnackVisible) {
      
@@ -42,7 +43,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Widget build(BuildContext context) {
     // get screen size
     final screenSize = MediaQuery.of(context).size;
-    
+  
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -54,19 +55,30 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         children: [
           // output
           Container(
-            height: screenSize.height * 0.32,
+            height: screenSize.height * 0.1,
             alignment: Alignment.bottomRight,
             padding: const EdgeInsets.all(16),
-            child: Text(
-              equation,
-              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.end,
+            child: BlocBuilder<CalculatorBloc, CalculatorState>(
+              builder: (context, state) {
+                if (state is CalculatorResult) {
+                  return Text(
+                    state.result,
+                    style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.end,
+                  );
+                }
+                return const Text(
+                  '0',
+                  style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.end,
+                );
+              },
             ),
           ),
 
           // buttons
           SizedBox(
-            height: screenSize.height * 0.58,
+            height: screenSize.height * 0.4,
             // color: Colors.red,
             child: Wrap(
               runSpacing: 4.0,
@@ -153,10 +165,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     //   return;
     // }
 
-    // if (value == Btn.clr) {
-    //   clearAll();
-    //   return;
-    // }
+    if (value == Btn.clr) {
+      context.read<CalculatorBloc>().add(ClearAll(equation));
+      return;
+    }
 
     // if (value == Btn.per) {
     //   convertToPercentage();
@@ -180,23 +192,25 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     // }
 
     // appendValue(value);
-    setState(() {
-      // equation = storeValues(value);
-      context.read<CalculatorBloc>().add(StoreValues(equation, value));
+    // setState(() {
+    //   // equation = storeValues(value);
+    //   context.read<CalculatorBloc>().add(StoreValues(equation, value));
 
-      BlocBuilder<CalculatorBloc, CalculatorState>(
-        builder: (context, state) {
-          if (state is CalculatorResult) {
-            equation = state.result;
-            // return state;
-            // Text('Result: ${state.result}');
-          }
-          // return Text('Enter numbers to calculate');
-          return equation;
-        },
-      );
+    //   BlocBuilder<CalculatorBloc, CalculatorState>(
+    //     builder: (context, state) {
+    //       if (state is CalculatorResult) {
+    //         equation = state.result;
+    //         // return state;
+    //         // Text('Result: ${state.result}');
+    //       }
+    //       // return Text('Enter numbers to calculate');
+    //       return equation;
+    //     },
+    //   );
 
-    });
+    // });
+    
+    context.read<CalculatorBloc>().add(StoreValues(equation, value));
   }
 
 
@@ -204,6 +218,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 }
 
 
+class ClearAll extends CalculatorEvent {
+  final String equation;
+
+  ClearAll(this.equation);
+}
 
 class StoreValues extends CalculatorEvent {
   final String equation;
@@ -224,10 +243,48 @@ class CalculatorResult extends CalculatorState {
   CalculatorResult(this.result);
 }
 
-on<StoreValues>((event, emit) {
-      String last_val = "";
+
+// BLoC class
+class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
+  CalculatorBloc() : super(CalculatorInitial()) {
+    // on<AddNumbers>((event, emit) {
+    //   final result = (event.num1 + event.num2).toString(); // Perform addition
+    //   emit(CalculatorResult(result)); // Emit the result
+    // });
+
+    // on<MinusNumbers>((event, emit) {
+    //   final result = (event.num1 - event.num2).toString();
+    //   emit(CalculatorResult(result));
+    // });
+
+    // on<MultiplyNumbers>((event, emit) {
+    //   final result = (event.num1 * event.num2).toString();
+    //   emit(CalculatorResult(result));
+    // });
+
+    // on<DivideNumbers>((event, emit) {
+    //   final result;
+    //   if (event.num2 == 0) {
+    //     result  = "Undefined";
+    //   } else {
+    //     result = (event.num1 / event.num2).toString();
+    //   }
+     
+    //   emit(CalculatorResult(result));
+    // });
+
+    on<ClearAll>((event, state) {
+      String equation = event.equation;
+      equation = "";
+      emit(CalculatorResult(equation));
+    });
+
+    on<StoreValues>((event, emit) {
+      String lastVal = "";
       String equation = event.equation;
       String value = event.value;
+
+      var storedVal = "";
 
       if (equation.isEmpty && RegExp(r'[+\-*/]').hasMatch(value)) {
         value = "";
@@ -237,17 +294,17 @@ on<StoreValues>((event, emit) {
       }
 
       if (equation.length > 1) {
-        last_val = equation[equation.length - 1];
+        lastVal = equation[equation.length - 1];
 
       
-        if (RegExp(r'[+\-*/]').hasMatch(last_val) && RegExp(r'[+\-*/]').hasMatch(value)) {
+        if (RegExp(r'[+\-*/]').hasMatch(lastVal) && RegExp(r'[+\-*/]').hasMatch(value)) {
           value = ""; 
         } else if(equation == "." && value == ".") {
           value = ""; 
         }
       }
 
-      print("Last Equation: " + last_val);
+      print("Last Equation: " + lastVal);
 
       // Replacing "/" with "÷"
       if (value == "/") {
@@ -255,10 +312,15 @@ on<StoreValues>((event, emit) {
       }
 
       equation += value;  
-      print("Display: " + equation);
+      storedVal += value;
+      print("Display: " + storedVal);
 
       emit(CalculatorResult(equation));
     });
+    
+  }
+}
+
 
 
 
