@@ -1,6 +1,264 @@
-For equation = "3+4":
-curr_number becomes 3.0.
-Operator '+' adds 3.0 to result, making result = 3.0.
-curr_number becomes 4.0 after parsing the next number.
-Operator '+' adds 4.0 to result, making result = 7.0.
-The function returns "7" as the final result.
+class CalculatorScreen extends StatefulWidget {
+  const CalculatorScreen({super.key});
+
+  @override
+  State<CalculatorScreen> createState() => _CalculatorScreenState();
+}
+
+class _CalculatorScreenState extends State<CalculatorScreen> {
+  String number1 = "";
+  String operand = "";
+  String number2 = ""; 
+
+  String equation = "";
+
+  bool isSnackVisible = false;
+
+  void _showSnackbar(String title, Color) {
+    if (isSnackVisible) {
+     
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.black,
+          content: Text(
+            title,
+            style: TextStyle(
+              color: Color,
+              fontWeight: FontWeight.w500,
+              fontSize: 18,
+            ),
+          ),
+        ),
+      );
+
+      // Optionally, reset the boolean to false after showing the Snackbar
+      setState(() {
+        isSnackVisible = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // get screen size
+    final screenSize = MediaQuery.of(context).size;
+    
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Icon(Icons.menu, color: Colors.orange, size: 30),
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // output
+          Container(
+            height: screenSize.height * 0.32,
+            alignment: Alignment.bottomRight,
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              equation,
+              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.end,
+            ),
+          ),
+
+          // buttons
+          SizedBox(
+            height: screenSize.height * 0.58,
+            // color: Colors.red,
+            child: Wrap(
+              runSpacing: 4.0,
+              children:
+                  Btn.buttonValues
+                      .map(
+                        (value) => SizedBox(
+                          width: screenSize.width / 4,
+                          height: 100,
+                          child: buildButton(value),
+                        ),
+                      )
+                      .toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget buildButton(value) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Material(
+        color: getBtnColor(value),
+        clipBehavior: Clip.antiAlias,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: () => onBtnTap(value),
+          child: Center(
+            child: modifiedBtnValue(value),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color getBtnColor(value) {
+    return [Btn.xop, Btn.clr, Btn.per].contains(value)
+        ? const Color.fromARGB(255, 107, 107, 107)
+        : [
+          Btn.multiply,
+          Btn.add,
+          Btn.subtract,
+          Btn.divide,
+          Btn.calculate,
+        ].contains(value)
+        ? const Color.fromARGB(255, 253, 154, 5)
+        : Color.fromARGB(255, 60, 60, 60);
+  }
+
+  modifiedBtnValue(value) {
+    if (value == "@") {
+      return Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: Image.asset('assets/calculator.png'),
+      );
+    } else if(value == "*") {
+      return Text(
+        'x',
+        style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 35),
+      );
+    } else if(value == "/") {
+      return Text(
+        '÷',
+        style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 35),
+      );
+    } else {
+      return Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 35),
+      );
+    }
+  }
+
+    void onBtnTap(String value) {
+    // if (value == Btn.del) {
+    //   delete();
+    //   return;
+    // }
+
+    // if (value == Btn.xop) {
+    //   oppositeSign();
+    //   return;
+    // }
+
+    // if (value == Btn.clr) {
+    //   clearAll();
+    //   return;
+    // }
+
+    // if (value == Btn.per) {
+    //   convertToPercentage();
+    //   return;
+    // }
+
+    // if (value == Btn.calculate) {
+    //   // calculate();
+    //   // number1 = convertToDouble();
+      
+    //   setState(() {
+    //     equation = convertToDouble();
+    //   });
+    //   return;
+    // }
+
+    // if (value == Btn.at) {
+    //   isSnackVisible = true;
+    //   _showSnackbar("Rawr! SnackBar Triggered", Colors.white);
+    //   return;
+    // }
+
+    // appendValue(value);
+    setState(() {
+      // equation = storeValues(value);
+      context.read<CalculatorBloc>().add(StoreValues(equation, value));
+
+      BlocBuilder<CalculatorBloc, CalculatorState>(
+        builder: (context, state) {
+          if (state is CalculatorResult) {
+            equation = state.result;
+            // return state;
+            // Text('Result: ${state.result}');
+          }
+          // return Text('Enter numbers to calculate');
+          return equation;
+        },
+      );
+
+    });
+  }
+
+
+
+}
+
+
+
+class StoreValues extends CalculatorEvent {
+  final String equation;
+  final String value;
+
+  StoreValues(this.equation, this.value);
+}
+
+
+// Define states
+abstract class CalculatorState {}
+
+class CalculatorInitial extends CalculatorState {}
+
+class CalculatorResult extends CalculatorState {
+  final String result;
+
+  CalculatorResult(this.result);
+}
+
+on<StoreValues>((event, emit) {
+      String last_val = "";
+      String equation = event.equation;
+      String value = event.value;
+
+      if (equation.isEmpty && RegExp(r'[+\-*/]').hasMatch(value)) {
+        value = "";
+      }
+      if (equation.isEmpty && value == Btn.n0) {
+        value = "";
+      }
+
+      if (equation.length > 1) {
+        last_val = equation[equation.length - 1];
+
+      
+        if (RegExp(r'[+\-*/]').hasMatch(last_val) && RegExp(r'[+\-*/]').hasMatch(value)) {
+          value = ""; 
+        } else if(equation == "." && value == ".") {
+          value = ""; 
+        }
+      }
+
+      print("Last Equation: " + last_val);
+
+      // Replacing "/" with "÷"
+      if (value == "/") {
+        value = "÷";
+      }
+
+      equation += value;  
+      print("Display: " + equation);
+
+      emit(CalculatorResult(equation));
+    });
+
+
+
