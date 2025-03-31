@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shopping/presentation/pages/HomePage.dart';
-import 'package:shopping/presentation/routes/app_routes.dart';
-import 'package:shopping/presentation/widgets/BottomNavigation.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,9 +12,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: AppRoutes.home,
-      // onGenerateRoute: generateRoute,
-      home: BottomNavigation(),
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      ),
+      home: HomePage(),
     );
   }
 }
@@ -24,11 +24,15 @@ class MyApp extends StatelessWidget {
 
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:shopping/presentation/routes/app_routes.dart';
 
-class BottomNavigation extends StatelessWidget {
-  const BottomNavigation({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,20 +47,7 @@ class BottomNavigation extends StatelessWidget {
             tabBackgroundColor: Colors.grey.shade800, 
             gap: 8,
             onTabChange: (index) {
-              switch (index) {
-                case 0:
-                  Navigator.pushNamed(context, AppRoutes.home);
-                  break;
-                case 1:
-                  Navigator.pushNamed(context, AppRoutes.likes);
-                  break;
-                case 2:
-                  Navigator.pushNamed(context, AppRoutes.search);
-                  break;
-                case 3:
-                  Navigator.pushNamed(context, AppRoutes.setting);
-                  break;
-              }
+              print(index);
             },
             padding: EdgeInsets.all(16),
             tabs: const [
@@ -82,36 +73,4 @@ class BottomNavigation extends StatelessWidget {
       ),
     );
   }
-}
-
-import 'package:flutter/material.dart';
-import 'package:shopping/presentation/pages/HomePage.dart';
-import 'package:shopping/presentation/pages/LikePage.dart';
-import 'package:shopping/presentation/pages/SearchPage.dart';
-import 'package:shopping/presentation/pages/SettingPage.dart';
-
-class AppRoutes {
-  static const home = '/home';
-  static const likes = '/profile';
-  static const search = '/search';
-  static const setting = '/setting';
-}
-
-Route<dynamic>? generateRoute(RouteSettings settings) {
-  switch (settings.name) {
-    case AppRoutes.home:
-      return MaterialPageRoute(builder: (_) => HomePage());
-    case AppRoutes.likes:
-      return MaterialPageRoute(builder: (_) => LikePage());
-    case AppRoutes.search:
-      return MaterialPageRoute(builder: (_) => SearchPage());
-    case AppRoutes.setting:
-      return MaterialPageRoute(builder: (_) => SettingPage());
-    default:
-      return MaterialPageRoute(
-        builder: (_) => Scaffold(
-          body: Center(child: Text('No route defined for ${settings.name}')),
-        ),
-      );
-  }
-}
+} 
