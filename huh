@@ -1,27 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:shopping/presentation/pages/HomePage.dart';
+import 'package:shopping/presentation/routes/app_routes.dart';
+import 'package:shopping/presentation/widgets/BottomNavigation.dart';
 
-class CustomButton extends StatelessWidget {
-  final String button_name;
-  final String button_values;
+void main() {
+  runApp(const MyApp());
+}
 
-  const CustomButton({
-    Key? key,
-    required this.button_name,
-    required this.button_values,
-  }) : super(key: key);
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      initialRoute: AppRoutes.home,
+      // onGenerateRoute: generateRoute,
+      home: BottomNavigation(),
+    );
+  }
+}
+
+
+import 'package:flutter/material.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:shopping/presentation/routes/app_routes.dart';
+
+class BottomNavigation extends StatelessWidget {
+  const BottomNavigation({super.key});
 
   @override
-  Widget CustomButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Material(
-        color: getBtnColor(button_name),
-        clipBehavior: Clip.antiAlias,
-        shape: const CircleBorder(),
-        child: InkWell(
-          onTap: () => onBtnTap(button_name, button_values),
-          child: Center(
-            child: modifiedBtnValue(button_values),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      bottomNavigationBar: Container(
+        color: Colors.black ,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20),
+          child: GNav(
+            backgroundColor: Colors.black,
+            color: Colors.white,
+            activeColor: Colors.white,
+            tabBackgroundColor: Colors.grey.shade800, 
+            gap: 8,
+            onTabChange: (index) {
+              switch (index) {
+                case 0:
+                  Navigator.pushNamed(context, AppRoutes.home);
+                  break;
+                case 1:
+                  Navigator.pushNamed(context, AppRoutes.likes);
+                  break;
+                case 2:
+                  Navigator.pushNamed(context, AppRoutes.search);
+                  break;
+                case 3:
+                  Navigator.pushNamed(context, AppRoutes.setting);
+                  break;
+              }
+            },
+            padding: EdgeInsets.all(16),
+            tabs: const [
+              GButton(
+                icon: Icons.home,
+                text: 'Home',
+              ),
+              GButton(
+                icon: Icons.favorite_border,
+                text: 'Likes',
+              ),
+              GButton(
+                icon: Icons.search,
+                text: 'Search',
+              ),
+              GButton(
+                icon: Icons.settings,
+                text: 'Settings',
+              ),
+            ],
           ),
         ),
       ),
@@ -29,13 +84,34 @@ class CustomButton extends StatelessWidget {
   }
 }
 
+import 'package:flutter/material.dart';
+import 'package:shopping/presentation/pages/HomePage.dart';
+import 'package:shopping/presentation/pages/LikePage.dart';
+import 'package:shopping/presentation/pages/SearchPage.dart';
+import 'package:shopping/presentation/pages/SettingPage.dart';
 
+class AppRoutes {
+  static const home = '/home';
+  static const likes = '/profile';
+  static const search = '/search';
+  static const setting = '/setting';
+}
 
-              children: [
-                for (var buttons in Buttons.values)
-                SizedBox(
-                  width: screenSize.width / 4,
-                  height: 100,
-                  child: CustomButton(buttons.name, buttons.value),
-                )
-              ],
+Route<dynamic>? generateRoute(RouteSettings settings) {
+  switch (settings.name) {
+    case AppRoutes.home:
+      return MaterialPageRoute(builder: (_) => HomePage());
+    case AppRoutes.likes:
+      return MaterialPageRoute(builder: (_) => LikePage());
+    case AppRoutes.search:
+      return MaterialPageRoute(builder: (_) => SearchPage());
+    case AppRoutes.setting:
+      return MaterialPageRoute(builder: (_) => SettingPage());
+    default:
+      return MaterialPageRoute(
+        builder: (_) => Scaffold(
+          body: Center(child: Text('No route defined for ${settings.name}')),
+        ),
+      );
+  }
+}
