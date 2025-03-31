@@ -1,22 +1,41 @@
-        Container(
-            child: Wrap(
-              runSpacing: 4.0,
-              // children: Btn.buttonValues
-              //     .map(
-              //       (value) => SizedBox(
-              //         width: screenSize.width / 4,
-              //         height: 100,
-              //         child: buildButton(value),
-              //       ),
-              //     )
-              //     .toList(),
+import 'package:flutter/material.dart';
+
+class CustomButton extends StatelessWidget {
+  final String button_name;
+  final String button_values;
+
+  const CustomButton({
+    Key? key,
+    required this.button_name,
+    required this.button_values,
+  }) : super(key: key);
+
+  @override
+  Widget CustomButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Material(
+        color: getBtnColor(button_name),
+        clipBehavior: Clip.antiAlias,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: () => onBtnTap(button_name, button_values),
+          child: Center(
+            child: modifiedBtnValue(button_values),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
               children: [
                 for (var buttons in Buttons.values)
                 SizedBox(
                   width: screenSize.width / 4,
                   height: 100,
-                  child: buildButton(buttons.name, buttons.value),
+                  child: CustomButton(buttons.name, buttons.value),
                 )
               ],
-            ),
-          ),
