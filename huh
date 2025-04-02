@@ -1,125 +1,198 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shopping/data/models/Product.dart';
+import 'package:shopping/data/providers/cart_provider.dart';
 import 'package:shopping/data/providers/favorite_provider.dart';
+import 'package:shopping/presentation/pages/details/CartDetailsPage.dart';
+import 'package:shopping/presentation/state/bloc/cart_bloc.dart';
+import 'package:shopping/presentation/state/states/cart_state.dart';
+import 'package:shopping/presentation/widgets/available_size.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:shopping/presentation/pages/details/ProductDetailsPage.dart';
-import 'package:shopping/presentation/state/bloc/favorite_bloc.dart';
-import 'package:shopping/presentation/state/states/favorite_state.dart';
-import 'package:shopping/presentation/widgets/appBar.dart';
+import 'package:provider/provider.dart';
 
-class WishlistPage extends StatefulWidget {
-  const WishlistPage({super.key});
+class ProductDetailsPage extends StatefulWidget {
+  final Product product;
+
+  const ProductDetailsPage({
+    super.key,
+    required this.product
+  });
 
   @override
-  State<WishlistPage> createState() => _WishlistPageState();
+  State<ProductDetailsPage> createState() => _ProductDetailsPageState();
 }
 
-class _WishlistPageState extends State<WishlistPage> {
+class _ProductDetailsPageState extends State<ProductDetailsPage> {
   @override
   Widget build(BuildContext context) {
-    // final provider  = FavoriteProvider.of(context);
-    // final favoriteList = provider.favorites;
+    // final cartProvider = CartProvider.of(context);
+    // print("Provider: " + cartProvider.toString());
+
+    // final provider = CartProvider.of(context);
+
     return Scaffold(
-      appBar: const CustomAppBar(title: "Hello, Kerby!"),
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: 20, left: 20),
-            child: Row(
+      appBar: AppBar(
+        title: const Text("Details"),
+        centerTitle: true,
+      ),
+      body: 
+      
+      BlocBuilder<CartBloc, CartState>(
+        builder: (context, state) {
+          if (state is CartLoaded) {
+            final carts = state.cart;
+
+            if (carts.isEmpty) {
+              return const Center(
+                child: Text('No Item added yet'),
+              );
+            }
+
+
+            return Column(
               children: [
-                Text(
-                  "WishList",
-                  style: TextStyle(
-                    fontSize: 27,
-                    fontWeight: FontWeight.bold
+                const SizedBox(height: 36,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 220,
+                      height: 220,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.red.shade100
+                      ),
+                      child: Image.asset(
+                        widget.product.image,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  ],
+                ),
+
+                const SizedBox(height: 36.0,),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  width: double.infinity,
+                  height: 400,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40)
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            widget.product.name.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          Text(
+                            '\$' '${widget.product.price}',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold
+                            ),
+                          )
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 14.0,),
+                      Text(
+                        widget.product.description,
+                        textAlign: TextAlign.justify,
+                        style: const TextStyle(
+                          fontSize: 14
+                        ),
+                      ),
+
+                      const SizedBox(height: 10.0,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Available Size',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8.0,),
+                      Row(
+                        children: [
+                          AvailableSize(size: 'XS'),
+                          AvailableSize(size: 'S'),
+                          AvailableSize(size: 'L'),
+                          AvailableSize(size: 'XL'),
+                          AvailableSize(size: 'XXL'),
+                        ],
+                      )
+                    ],
                   ),
                 )
               ],
+            );
+
+        bottomSheet: BottomAppBar(
+          color: Colors.white,
+          child: ElevatedButton.icon(
+              onPressed: () {
+                // provider.toggleProduct(product);
+                // cartProvider.addToCart(widget.product);
+                provider.toggleFavorite(widget.product);
+                print("Product: " + widget.product.toString());
+                Navigator.push(
+                  context, 
+                  MaterialPageRoute(
+                    builder: (context) => const CartListPage(),
+                  )
+                );
+              }, 
+              // icon: const Icon(
+              //   Icons.send,
+              //   color: Colors.white,
+              //   size: 18,
+              // ),
+              label: const Text(
+                'Add to Cart',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50),
+                  
+                ),
+              ),
             ),
-          ),
-
-          BlocBuilder<FavoriteBloc, FavoriteState>(
-            builder: (context, state) {
-              if (state is FavoriteLoaded) {
-                final favorites = state.favorites;
-
-                if (favorites.isEmpty) {
-                  return const Center(
-                    child: Text('No favorites added yet.'),
-                  );
-                }
-
-                return Expanded(
-                  child: ListView.builder(
-                    itemCount: favorites.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Slidable(
-                          endActionPane: ActionPane(
-                            motion: const ScrollMotion(), 
-                            children: [
-                              SlidableAction(
-                                onPressed: (context){
-                                  // favoriteList.removeAt(index);
-                                  // setState(() {
-                                    
-                                  // });
-                                },
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                                icon: Icons.delete,
-                                label: 'Delete',
-                              )
-                            ]
-                          ),
-                          child: GestureDetector(
-                            onTap: () {
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //     builder: (context) => ProductDetailsPage(product: favoriteList[index]),
-                                  //   ),
-                                  // );
-                                },
-                            child: ListTile(
-                              title: Text(
-                                favorites[index].name,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold
-                                ),
-                              ),
-                              subtitle: Text(
-                                favorites[index].description,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              leading: CircleAvatar(
-                                radius: 30,
-                                backgroundImage: AssetImage(favorites[index].image),
-                                backgroundColor: Colors.grey.shade100,
-                              ),
-                              trailing: Text(
-                                '\$${favorites[index].price}',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+          );
+          } else if (state is CarrtInital) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else {
+                return const Center(
+                  child: Text('Something went wrong.'),
                 );
               }
             },
           ),
-          
-        ],
-      )
+      
+
     );
   }
 }
+
