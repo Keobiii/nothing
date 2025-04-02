@@ -1,184 +1,20 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping/data/providers/cart_provider.dart';
-import 'package:shopping/data/providers/favorite_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:provider/provider.dart';
-import 'package:shopping/presentation/state/bloc/cart_bloc.dart';
-import 'package:shopping/presentation/state/states/cart_state.dart';
+    on<ToggleCartEvent>((event, emit) {
+      List<Product> updatedCart = state is CartLoaded
+        ? List<Product>.from((state as CartLoaded).cart)
+        : [];
 
-class CartListPage extends StatefulWidget {
-  const CartListPage({super.key});
+      if (updatedCart.contains(event.product)) {
+        for(Product element in updatedCart) {
+          element.quantity++;
 
-  @override
-  State<CartListPage> createState() => _CartListPageState();
-}
+          if (element.quantity > element.totalQuantity) {
+            // Error
+          }
+        }
+      } else {
+        updatedCart.add(event.product);
+      }
 
-class _CartListPageState extends State<CartListPage> {
-  @override
-  Widget build(BuildContext context) {
-    // final provider  = CartProvider.of(context);
-    // final cartList = provider.cart;
 
-    _buildProductQuantity(IconData icon, int index){
-      return GestureDetector(
-        onTap: () {
-          setState(() {
-            icon == Icons.add
-              ? provider.incrementQuantity(index)
-              : provider.decrementQuantity(index);
-          });
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.red.shade100
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-          ),
-        ),
-      );
-    }
-
-    // print("Cart List: " + cartList.toString());
-    return Scaffold(
-      appBar: AppBar(
-        leading: const BackButton(),
-        backgroundColor: Colors.white,
-        elevation: 1.0,
-      ),
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: 20, left: 20),
-            child: Row(
-              children: [
-                Text(
-                  "Cart",
-                  style: TextStyle(
-                    fontSize: 27,
-                    fontWeight: FontWeight.bold
-                  ),
-                )
-              ],
-            ),
-          ),
-
-          BlocBuilder<CartBloc, CartState>(
-            builder: (context, state) {
-              if (state is CartLoaded) {
-                final carts = state.cart;
-
-                if (carts.isEmpty) {
-                  return const Center(
-                    child: Text('No Item added yet.'),
-                  );
-                }
-
-                return Expanded(
-                  child: ListView.builder(
-                    itemCount: carts.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                          child: Slidable(
-                          endActionPane: ActionPane(
-                            motion: const ScrollMotion(), 
-                            children: [
-                              SlidableAction(
-                                onPressed: (context){
-                                  // cartList.removeAt(index);
-                                  carts.remove(index);
-                                  setState(() {
-                                    
-                                  });
-                                },
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                                icon: Icons.delete,
-                                label: 'Delete',
-                              )
-                            ]
-                          ),
-                            child: ListTile(
-                              title: Text(
-                                carts[index].name,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold
-                                ),
-                              ),
-                              subtitle: Text(
-                                '\$${carts[index].price}',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              leading: CircleAvatar(
-                                radius: 30,
-                                backgroundImage: AssetImage(carts[index].image),
-                                backgroundColor: Colors.grey.shade100,
-                              ),
-                              trailing: Column(
-                                children: [
-                                  _buildProductQuantity(Icons.add, index),
-                                  Text(
-                                    '${carts[index].quantity}',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                  _buildProductQuantity(Icons.remove, index)
-                                ],
-                              ),
-                            ),
-                          ),
-                      );
-                    },
-                  ),
-                );
-                
-              } else if (state is CarrtInital) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              } else {
-                return const Center(
-                  child: Text('Something went wrong.'),
-                );
-              }
-            },
-          ),
-
-        ],
-      ),
-
-      bottomSheet: BottomAppBar(
-        color: Colors.white,
-        child: ElevatedButton.icon(
-            onPressed: () {
-
-              
-            }, 
-            label: Text(
-              '\$${provider.getTotalPrice()} Check Out',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey,
-              minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50),
-                 
-              ),
-            ),
-          ),
-        ),
-    );
-  }
-}
+      emit(CartLoaded(updatedCart));
+    });
