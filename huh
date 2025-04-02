@@ -1,87 +1,164 @@
-class ShopPage extends StatefulWidget {
-  const ShopPage({super.key});
+class ProductList {
+  static List<Product> allProducts = [
 
-  @override
-  State<ShopPage> createState() => _ShopPageState();
+    // T-shirt
+    Product(
+      id: 1, 
+      name: 'T-Shirt 1', 
+      category: 't-shirt', 
+      image: 'assets/images/t-shirt/img1.png', 
+      description: 'Lorem Ipsum', 
+      price: 1800.00, 
+      quantity: 1,
+    ),
+    Product(
+      id: 1, 
+      name: 'T-Shirt 2', 
+      category: 't-shirt', 
+      image: 'assets/images/t-shirt/img2.png', 
+      description: 'Lorem Ipsum', 
+      price: 200.00, 
+      quantity: 1,
+    ),
+    Product(
+      id: 1, 
+      name: 'T-Shirt 3', 
+      category: 't-shirt', 
+      image: 'assets/images/t-shirt/img3.png', 
+      description: 'Lorem Ipsum', 
+      price: 220.00, 
+      quantity: 1,
+    ),
+    Product(
+      id: 1, 
+      name: 'T-Shirt 4', 
+      category: 't-shirt', 
+      image: 'assets/images/t-shirt/img4.png', 
+      description: 'Lorem Ipsum', 
+      price: 240.00, 
+      quantity: 1,
+    ),
+
+    // Polo-Shirt
+    Product(
+      id: 1, 
+      name: 'Polo-Shirt 1', 
+      category: 'polo-shirt', 
+      image: 'assets/images/polo-shirt/img1.png', 
+      description: 'Lorem Ipsum', 
+      price: 180.00, 
+      quantity: 1,
+    ),   
+    Product(
+      id: 1, 
+      name: 'Polo-Shirt 2', 
+      category: 'polo-shirt', 
+      image: 'assets/images/polo-shirt/img2.png', 
+      description: 'Lorem Ipsum', 
+      price: 200.00, 
+      quantity: 1,
+    ),
+    Product(
+      id: 1, 
+      name: 'Polo-Shirt 3', 
+      category: 'polo-shirt', 
+      image: 'assets/images/polo-shirt/img3.png', 
+      description: 'Lorem Ipsum', 
+      price: 220.00, 
+      quantity: 1,
+    ),
+    Product(
+      id: 1, 
+      name: 'Polo-Shirt 4', 
+      category: 'polo-shirt', 
+      image: 'assets/images/polo-shirt/img4.png', 
+      description: 'Lorem Ipsum', 
+      price: 240.00, 
+      quantity: 1,
+    ), 
+  ];
+
+  static List<Product> tShirtList = [
+
+    // T-shirt
+    Product(
+      id: 1, 
+      name: 'T-Shirt 1', 
+      category: 't-shirt', 
+      image: 'assets/images/t-shirt/img1.png', 
+      description: 'Lorem Ipsum', 
+      price: 100.00, 
+      quantity: 1,
+    ),
+    Product(
+      id: 1, 
+      name: 'T-Shirt 2', 
+      category: 't-shirt', 
+      image: 'assets/images/t-shirt/img2.png', 
+      description: 'Lorem Ipsum', 
+      price: 200.00, 
+      quantity: 1,
+    ),
+    Product(
+      id: 1, 
+      name: 'T-Shirt 3', 
+      category: 't-shirt', 
+      image: 'assets/images/t-shirt/img3.png', 
+      description: 'Lorem Ipsum', 
+      price: 220.00, 
+      quantity: 1,
+    ),
+    Product(
+      id: 1, 
+      name: 'T-Shirt 4', 
+      category: 't-shirt', 
+      image: 'assets/images/t-shirt/img4.png', 
+      description: 'Lorem Ipsum', 
+      price: 240.00, 
+      quantity: 1,
+    ),
+
+  ];
+
+  static List<Product> poloShirtList = [
+
+    // Polo-Shirt
+    Product(
+      id: 1, 
+      name: 'Polo-Shirt 10', 
+      category: 'polo-shirt', 
+      image: 'assets/images/polo-shirt/img1.png', 
+      description: 'Lorem Ipsum', 
+      price: 5000.00, 
+      quantity: 1,
+    ),   
+    Product(
+      id: 1, 
+      name: 'Polo-Shirt 2', 
+      category: 'polo-shirt', 
+      image: 'assets/images/polo-shirt/img2.png', 
+      description: 'Lorem Ipsum', 
+      price: 200.00, 
+      quantity: 1,
+    ),
+    Product(
+      id: 1, 
+      name: 'Polo-Shirt 3', 
+      category: 'polo-shirt', 
+      image: 'assets/images/polo-shirt/img3.png', 
+      description: 'Lorem Ipsum', 
+      price: 220.00, 
+      quantity: 1,
+    ),
+    Product(
+      id: 1, 
+      name: 'Polo-Shirt 4', 
+      category: 'polo-shirt', 
+      image: 'assets/images/polo-shirt/img4.png', 
+      description: 'Lorem Ipsum', 
+      price: 240.00, 
+      quantity: 1,
+    ), 
+  ];
+
 }
-
-class _ShopPageState extends State<ShopPage> {
-  @override
-  Widget build(BuildContext context) {
-    int isSelected = 0;
-    print('Selected index: ' + isSelected.toString());
-    return Scaffold(
-      appBar: const CustomAppBar(title: "Hello, Kerby!"),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _searchBar(),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Our Products',
-                    style: TextStyle(
-                      fontSize: 27,
-                      fontWeight: FontWeight.bold
-                    ),
-                  ),
-                  // Chips
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        // _buildProductCategory(index: 0, name: 'All Products'),
-                        // _buildProductCategory(index: 1, name: 'T-Shirt'),
-                        // _buildProductCategory(index: 2, name: 'Polo-Shirt'),
-                        ProductCategory(
-                          index: 0,
-                          name: 'All Products',
-                          selectedIndex: isSelected,
-                          onTap: () {
-                            setState(() {
-                              isSelected = 0;
-                            });
-                          },
-                        ),
-                        ProductCategory(
-                          index: 1,
-                          name: 'T-Shirt',
-                          selectedIndex: isSelected,
-                          onTap: () {
-                            setState(() {
-                              isSelected = 1;
-                            });
-                          },
-                        ),
-                        ProductCategory(
-                          index: 2,
-                          name: 'Polo-Shirt',
-                          selectedIndex: isSelected,
-                          onTap: () {
-                            setState(() {
-                              isSelected = 2;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-        
-                  // Product Grid
-                  isSelected == 0
-                      ? ProductGrid(products: ProductList.allProducts)
-                      : isSelected == 1
-                          ? ProductGrid(products: ProductList.tShirtList)
-                          : ProductGrid(products: ProductList.poloShirtList),
-                ],
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
