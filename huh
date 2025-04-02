@@ -1,20 +1,16 @@
-    on<ToggleCartEvent>((event, emit) {
-      List<Product> updatedCart = state is CartLoaded
-        ? List<Product>.from((state as CartLoaded).cart)
-        : [];
+BlocBuilder<CartBloc, CartState>(
+            builder: (context, state) {
+              if (state is CartLoaded) {
+                final product = state.cart;
 
-      if (updatedCart.contains(event.product)) {
-        for(Product element in updatedCart) {
-          element.quantity++;
-
-          if (element.quantity > element.totalQuantity) {
-            // Error
-          }
-        }
-      } else {
-        updatedCart.add(event.product);
-      }
-
-
-      emit(CartLoaded(updatedCart));
-    });
+                return Text(
+                  'Left: ${}'
+                );
+              } else {
+                return Text(
+                  'Out of Stock',
+                  style: TextStyle(color: Colors.red),
+                );
+              }
+            },
+          ) 
