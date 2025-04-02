@@ -1,97 +1,125 @@
-import 'package:shopping/data/models/Product.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shopping/data/providers/favorite_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:shopping/presentation/pages/details/ProductDetailsPage.dart';
+import 'package:shopping/presentation/state/bloc/favorite_bloc.dart';
+import 'package:shopping/presentation/state/states/favorite_state.dart';
+import 'package:shopping/presentation/widgets/appBar.dart';
 
-class FavoriteProvider extends ChangeNotifier {
-  final List<Product> _favorites = [];
-  List<Product> get favorites => _favorites;
+class WishlistPage extends StatefulWidget {
+  const WishlistPage({super.key});
 
-  void toggleFavorite(Product product) {
-    if (_favorites.contains(product)) {
-      _favorites.remove(product);
-    } else {
-      _favorites.add(product);
-    }
-
-    notifyListeners();
-  }
-
-  bool isExist(Product product) {
-    final isExist = _favorites.contains(product);
-    return isExist;
-  }
-
-  static FavoriteProvider of(
-    BuildContext context, {
-      bool listen = true,
-  }) {
-    return Provider.of<FavoriteProvider>(
-      context,
-      listen: listen
-    );
-  }
+  @override
+  State<WishlistPage> createState() => _WishlistPageState();
 }
 
+class _WishlistPageState extends State<WishlistPage> {
+  @override
+  Widget build(BuildContext context) {
+    // final provider  = FavoriteProvider.of(context);
+    // final favoriteList = provider.favorites;
+    return Scaffold(
+      appBar: const CustomAppBar(title: "Hello, Kerby!"),
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 20, left: 20),
+            child: Row(
+              children: [
+                Text(
+                  "WishList",
+                  style: TextStyle(
+                    fontSize: 27,
+                    fontWeight: FontWeight.bold
+                  ),
+                )
+              ],
+            ),
+          ),
 
+          BlocBuilder<FavoriteBloc, FavoriteState>(
+            builder: (context, state) {
+              if (state is FavoriteLoaded) {
+                final favorites = state.favorites;
 
-import 'package:shopping/data/models/Product.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+                if (favorites.isEmpty) {
+                  return const Center(
+                    child: Text('No favorites added yet.'),
+                  );
+                }
 
-class CartProvider extends ChangeNotifier {
-  final List<Product> _cart = [];
-  List<Product> get cart => _cart;
-
-  void toggleFavorite(Product product) {
-    // if (_cart.contains(product)) {
-    //   // _cart.remove(product);
-    // } else {
-    //   _cart.add(product);
-    // }
-
-    if (_cart.contains(product)) {
-      for (Product element in _cart) {
-        element.quantity++;
-      }
-    } else {
-      _cart.add(product);
-    }
-
-    notifyListeners();
-  }
-
-  incrementQuantity(int index) => _cart[index].quantity++;
-  // decrementQuantity(int index) => _cart[index].quantity--;
-
-  void decrementQuantity(int index) {
-    if (_cart[index].quantity <= 1) {
-      _cart.removeAt(index);
-    } else {
-      _cart[index].quantity--;
-    }
-    notifyListeners(); 
-  }
-  getTotalPrice() {
-    double total = 0.0;
-    for (Product element in _cart) {
-      total += element.price * element.quantity;
-    }
-
-    return total;
-  }
-
-  bool isExist(Product product) {
-    final isExist = _cart.contains(product);
-    return isExist;
-  }
-
-  static CartProvider of(
-    BuildContext context, {
-      bool listen = true,
-  }) {
-    return Provider.of<CartProvider>(
-      context,
-      listen: listen
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: favorites.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Slidable(
+                          endActionPane: ActionPane(
+                            motion: const ScrollMotion(), 
+                            children: [
+                              SlidableAction(
+                                onPressed: (context){
+                                  // favoriteList.removeAt(index);
+                                  // setState(() {
+                                    
+                                  // });
+                                },
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                icon: Icons.delete,
+                                label: 'Delete',
+                              )
+                            ]
+                          ),
+                          child: GestureDetector(
+                            onTap: () {
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) => ProductDetailsPage(product: favoriteList[index]),
+                                  //   ),
+                                  // );
+                                },
+                            child: ListTile(
+                              title: Text(
+                                favorites[index].name,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold
+                                ),
+                              ),
+                              subtitle: Text(
+                                favorites[index].description,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              leading: CircleAvatar(
+                                radius: 30,
+                                backgroundImage: AssetImage(favorites[index].image),
+                                backgroundColor: Colors.grey.shade100,
+                              ),
+                              trailing: Text(
+                                '\$${favorites[index].price}',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }
+            },
+          ),
+          
+        ],
+      )
     );
   }
 }
