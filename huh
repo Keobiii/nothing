@@ -58,3 +58,10 @@ class Appbar extends StatelessWidget implements PreferredSize{
 return Scaffold(
       appBar: Appbar(),
       body: SingleChildScrollView(
+
+
+
+
+
+Missing concrete implementation of 'getter PreferredSize.child'.
+Try implementing the missing method, or make the class abstract.
