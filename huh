@@ -1,58 +1,60 @@
-import 'package:shopping/data/models/Product.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:shopping/presentation/pages/details/CartDetailsPage.dart';
 
-class CartProvider extends ChangeNotifier {
-  final List<Product> _cart = [];
-  List<Product> get cart => _cart;
+class Appbar extends StatelessWidget implements PreferredSize{
+  const Appbar({super.key});
 
-  void toggleFavorite(Product product) {
-    // if (_cart.contains(product)) {
-    //   // _cart.remove(product);
-    // } else {
-    //   _cart.add(product);
-    // }
-
-    if (_cart.contains(product)) {
-      for (Product element in _cart) {
-        element.quantity++;
-      }
-    } else {
-      _cart.add(product);
-    }
-
-    notifyListeners();
-  }
-
-  incrementQuantity(int index) => _cart[index].quantity++;
-  decrementQuantity(int index) {
-    if (_cart[index].quantity == 0 || _cart[index].quantity <= 0) {
-      _cart.removeAt(index);
-    } 
-    _cart[index].quantity--;
-  } 
-
-  getTotalPrice() {
-    double total = 0.0;
-    for (Product element in _cart) {
-      total += element.price * element.quantity;
-    }
-
-    return total;
-  }
-
-  bool isExist(Product product) {
-    final isExist = _cart.contains(product);
-    return isExist;
-  }
-
-  static CartProvider of(
-    BuildContext context, {
-      bool listen = true,
-  }) {
-    return Provider.of<CartProvider>(
-      context,
-      listen: listen
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: Text(
+        'Hello, Kerby!',
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 18,
+          fontWeight: FontWeight.bold
+        ),
+      ),
+      backgroundColor: Colors.white,
+      elevation: 0,
+      centerTitle: false,
+      actions: [
+        GestureDetector(
+          onTap: (){
+            Navigator.push(
+              context, 
+              MaterialPageRoute(
+                builder: (context) => const CartListPage(),
+              )
+            );
+          },
+          child: Container(
+            margin: EdgeInsets.all(10),
+            alignment: Alignment.center,
+            width: 37,
+            child: SvgPicture.asset(
+              'assets/vectors/cart.svg',
+              height: 20,
+              width: 20,
+            ),
+            decoration: BoxDecoration(
+              color: Color(0xFFf7f8f8),
+              borderRadius: BorderRadius.circular(10)
+            ),
+          ),
+        ),
+      ],
     );
   }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
+
+
+
+// implementation
+return Scaffold(
+      appBar: Appbar(),
+      body: SingleChildScrollView(
