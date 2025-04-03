@@ -1,150 +1,141 @@
-@Composable
-fun GameUI(index: Int, gameName: String) {
-    val viewModel = ViewModelProvider(this)[ResultViewModel::class.java]
+ElevatedButton(
+  onPressed: () {
+    if (_formKey.currentState!.validate()) {
+      final price_ = _priceController.text;
+      var finalPrice;
 
-    val constraints = ConstraintSet {
-        val headerContent = createRefFor("headerContent")
-        val mainContent = createRefFor("mainContent")
-        val footerContent = createRefFor("footerContent")
+      final quantity_ = _quantityController.text;
+      var finalQuan;
 
-        constrain(headerContent) {
-            top.linkTo(parent.top)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
+      try {
+        finalPrice = double.parse(price_);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Price Error: " + e.toString()),
+          ),
+        );
+      }
+
+      try {
+        finalQuan = int.parse(quantity_);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Quantity Error: " + e.toString()),
+          ),
+        );
+      }
+
+      // categoryId based on selectedValue
+      int categoryId = int.parse(selectedValue!);
+
+      List<Product> categoryList;
+      switch (categoryId) {
+        case 1:
+          categoryList = ProductList.tShirtList;
+          break;
+        case 2:
+          categoryList = ProductList.poloShirtList;
+          break;
+        case 3:
+          categoryList = ProductList.casualWear;
+          break;
+        default:
+          throw Exception('Invalid categoryId');
+      }
+
+      // If editing an existing product, update it
+      if (isEditingMode && selectedProduct != null) {
+        selectedProduct!.name = _productNameController.text;
+        selectedProduct!.categoryId = categoryId;
+        selectedProduct!.description = _descriptionController.text;
+        selectedProduct!.price = finalPrice;
+        selectedProduct!.totalQuantity = finalQuan;
+
+        // You can also update the image if needed, depending on the logic you want
+        // selectedProduct!.image = getRandomImageFromCategory(categoryId);
+      } else {
+        // If not in editing mode, create a new product
+        String getRandomImageFromCategory(int categoryId) {
+          final random = Random();
+          List<String>? categoryAssets;
+
+          switch (categoryId) {
+            case 1:
+              categoryAssets = ProductAssets.tShirtAssets;
+              break;
+            case 2:
+              categoryAssets = ProductAssets.poloShirtAssets;
+              break;
+            case 3:
+              categoryAssets = ProductAssets.casualAssets;
+              break;
+            default:
+              throw Exception('Invalid category ID');
+          }
+
+          // Randomly pick an image from the category
+          return categoryAssets[random.nextInt(categoryAssets.length)];
         }
 
-        constrain(mainContent) {
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-            top.linkTo(parent.top)
-            bottom.linkTo(parent.bottom)
-        }
+        // Choose a random image from category assets
+        String randomImage = getRandomImageFromCategory(categoryId);
 
-        constrain(footerContent) {
-            top.linkTo(mainContent.bottom)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-            bottom.linkTo(parent.bottom)
-        }
+        int index = allProducts.length;
+        Product newProduct = Product(
+          id: index + 1,  // you might want to adjust the ID logic here to ensure it's unique
+          name: _productNameController.text,
+          categoryId: categoryId,
+          image: randomImage,
+          description: _descriptionController.text,
+          price: finalPrice,
+          quantity: 1,
+          totalQuantity: finalQuan,
+        );
+
+        categoryList.add(newProduct);
+      }
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isEditingMode ? "Product updated successfully!" : "Product added successfully!"),
+        ),
+      );
+
+      // Clear the forms
+      _productNameController.clear();
+      _descriptionController.clear();
+      _quantityController.clear();
+      _priceController.clear();
+      setState(() {
+        selectedValue = null;
+        isEditingMode = false;  // Reset to non-editing mode after action
+      });
+    } else {
+      // errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Please fill out all fields"),
+        ),
+      );
     }
-
-    ConstraintLayout(
-        constraints,
-        modifier = Modifier.fillMaxSize().background(pageBackground).padding(16.dp)
-    ) {
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.13f)
-                .layoutId("headerContent")
-                .padding(10.dp)
-                .border(1.dp, Color.Blue),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(
-                        style = SpanStyle(
-                            color = yelloowww,
-                            fontSize = 32.sp,
-                            textDecoration = TextDecoration.None
-                        )
-                    ) {
-                        append("S")
-                    }
-                    append("cratch")
-                    withStyle(
-                        style = SpanStyle(
-                            color = yelloowww,
-                            fontSize = 32.sp,
-                            textDecoration = TextDecoration.None
-                        )
-                    ) {
-                        append("C")
-                    }
-                    append("ard")
-                },
-                modifier = Modifier.padding(start = 20.dp),
-                color =  MaterialTheme.colorScheme.background,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                fontStyle = FontStyle.Italic,
-                textAlign = TextAlign.Center,
-            )
-
-
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxHeight(0.6f)
-                .fillMaxWidth()
-                .background(pageBackground)
-                .layoutId("mainContent")
-                .border(1.dp, Color.Yellow)
-        ) {
-            if (index == 1) {
-                ScratchWin()
-            } else if (index == 2) {
-                Spinner()
-            } else if (index == 3) {
-                Mining(index, gameName)
-            } else {
-                GuessCard(viewModel)
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.13f)
-                .layoutId("footerContent")
-                .padding(10.dp)
-                .border(1.dp, Color.Blue),
-        ) {
-            Text(
-                "Footer"
-            )
-
-
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-@Composable
-fun GuessCard(viewModel: ResultViewModel) {
-
-    var result by viewModel.result.observeAsState(initial = "")
-
-    if (userPick == "lower" && firstCardVal > secondCardVal) {
-                result = "lower"
-            }
-
-            if (userPick == "higher" && firstCardVal < secondCardVal) {
-                result = "higher"
-            }
-}
-
-
-
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-
-class ResultViewModel : ViewModel() {
-    private val _result = MutableLiveData<String>()
-    val result : LiveData<String> = _result
-
-    fun onResultUpdate(newResult : String) {
-        _result.value = newResult
-    }
-}
+  },
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.blue,
+    elevation: 2.0,
+    shadowColor: Colors.black,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(4),
+    ),
+  ),
+  child: Text(
+    isEditingMode ? 'Update Product' : 'Add Product',
+    style: const TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+  ),
+)
