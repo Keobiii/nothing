@@ -1,11 +1,207 @@
-  final List<Map<String, dynamic>> dataList = categories;
-  List<DropdownMenuItem<String>> get dropdownItems {
+class ProductFormPage extends StatefulWidget {
+  const ProductFormPage({super.key});
 
-    List<DropdownMenuItem<String>> menuItems = [
-      for (var item in categories) {
-        DropdownMenuItem(child: Text(item['name'].toString()), value: item['id'])
-      }
-    ];
+  @override
+  State<ProductFormPage> createState() => _ProductFormPageState();
+}
+
+class _ProductFormPageState extends State<ProductFormPage> {
+  final _formKey = GlobalKey<FormState>();
+
+  var _productName;
+  var _description;
+  var _quantity;
+
+  final _productNameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _quantityController = TextEditingController();
+
+  void _updateUserForm() {
+    setState(() {
+      _productName = _productNameController.text;
+      _description = _descriptionController.text;
+      _quantity = _quantityController.text;
+    });
+  }
+
+  List<DropdownMenuItem<String>> get dropdownItems {
+    // Filtering out the item with id = 0
+    List<Map<String, dynamic>> filteredCategories =
+        categories.where((item) => item['id'] != 0).toList();
+
+    // Generating the dropdown menu items
+    List<DropdownMenuItem<String>> menuItems =
+        filteredCategories.map((item) {
+          return DropdownMenuItem(
+            child: Text(item['name'].toString()),
+            value: item['id'].toString(),
+          );
+        }).toList();
+
+    return menuItems;
+
+    // DropdownMenuItem(child: Text("USA"), value: "USA"),
+    // DropdownMenuItem(child: Text("Canada"), value: "Canada"),
+    // DropdownMenuItem(child: Text("Brazil"), value: "Brazil"),
+    // DropdownMenuItem(child: Text("England"), value: "England"),
+  }
+
+  String? selectedValue = null;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: const CustomAppBar(title: "Hello, Kerby!"),
+      backgroundColor: Colors.white,
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Add Product',
+                      style: TextStyle(
+                        fontSize: 27,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 50),
+                CustomTextFormField(
+                  controller: _productNameController,
+                  labelText: 'Product Name',
+                  icon: Icons.person_outline_outlined,
+                  keyboardType: TextInputType.text,
+                  validator: (value) {
+                    if (value == null || value.toString().isEmpty) {
+                      return 'Please enter some text';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Category',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    // DropdownButton(
+                    //   menuWidth: double.infinity,
+                    //   value: selectedValue,
+                    //   items: dropdownItems,
+                    //   onChanged: (String? newValue) {
+                    //     setState(() {
+                    //       selectedValue = newValue!;
+                    //     });
+                    //   },
+                    // ),
+                    DropdownButtonFormField(
+                      decoration: InputDecoration(
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black, width: 2),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black, width: 2),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator:
+                          (value) => value == null ? "Select a category" : null,
+                      dropdownColor: Colors.white,
+                      value: selectedValue,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedValue = newValue!;
+                        });
+                      },
+                      items: dropdownItems,
+                    ),
+
+                    SizedBox(height: 20),
+                    CustomTextFormField(
+                      controller: _descriptionController,
+                      labelText: 'Description',
+                      icon: Icons.person_outline_outlined,
+                      keyboardType: TextInputType.text,
+                      maxLiness: null,
+                      validator: (value) {
+                        if (value == null || value.toString().isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    SizedBox(height: 20),
+                    CustomTextFormField(
+                      controller: _quantityController,
+                      isNumber: true,
+                      labelText: 'Quantity',
+                      icon: Icons.person_outline_outlined,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.toString().isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          elevation: 2.0,
+                          shadowColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        child: Text(
+                          'Add Product',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
 
 List<Map<String, dynamic>> categories = [
   {'id': 0, 'name': 'all'},
@@ -13,3 +209,159 @@ List<Map<String, dynamic>> categories = [
   {'id': 2, 'name': 'polo-shirt'},
   {'id': 3, 'name': 'casual'},
 ];
+
+
+
+import 'package:shopping/data/models/Product.dart';
+
+class ProductList {
+  static List<Product> tShirtList = [
+    // T-shirt
+    Product(
+      id: 1,
+      name: 'T-Shirt 1',
+      categoryId: 1,
+      image: 'assets/images/t-shirt/img1.png',
+      description: 'Lorem Ipsum',
+      price: 100.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+    Product(
+      id: 1,
+      name: 'T-Shirt 2',
+      categoryId: 1,
+      image: 'assets/images/t-shirt/img2.png',
+      description: 'Lorem Ipsum',
+      price: 200.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+    Product(
+      id: 1,
+      name: 'T-Shirt 3',
+      categoryId: 1,
+      image: 'assets/images/t-shirt/img3.png',
+      description: 'Lorem Ipsum',
+      price: 220.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+  ];
+
+  static List<Product> poloShirtList = [
+    // Polo-Shirt
+    Product(
+      id: 1,
+      name: 'Polo-Shirt 10',
+      categoryId: 2,
+      image: 'assets/images/polo-shirt/img1.png',
+      description: 'Lorem Ipsum u g',
+      price: 100.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+    Product(
+      id: 1,
+      name: 'Polo-Shirt 2',
+      categoryId: 2,
+      image: 'assets/images/polo-shirt/img2.png',
+      description: 'Lorem Ipsum',
+      price: 200.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+    Product(
+      id: 1,
+      name: 'Polo-Shirt 3',
+      categoryId: 2,
+      image: 'assets/images/polo-shirt/img3.png',
+      description: 'Lorem Ipsum',
+      price: 220.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+    Product(
+      id: 1,
+      name: 'Polo-Shirt 4',
+      categoryId: 2,
+      image: 'assets/images/polo-shirt/img4.png',
+      description: 'Lorem Ipsum',
+      price: 240.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+    Product(
+      id: 1,
+      name: 'Polo-Shirt 5',
+      categoryId: 2,
+      image: 'assets/images/polo-shirt/img5.png',
+      description: 'Lorem Ipsum',
+      price: 240.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+    Product(
+      id: 1,
+      name: 'Polo-Shirt 6',
+      categoryId: 2,
+      image: 'assets/images/polo-shirt/img6.png',
+      description: 'Lorem Ipsum',
+      price: 240.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+    Product(
+      id: 1,
+      name: 'Polo-Shirt 7',
+      categoryId: 2,
+      image: 'assets/images/polo-shirt/img7.png',
+      description: 'Lorem Ipsum',
+      price: 240.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+  ];
+
+  static List<Product> casualWear = [
+    Product(
+      id: 1,
+      name: "Casual 1",
+      categoryId: 3,
+      image: 'assets/images/casual/img1.png',
+      description: 'Lorem Ipsum',
+      price: 160.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+    Product(
+      id: 1,
+      name: "Casual 2",
+      categoryId: 3,
+      image: 'assets/images/casual/img2.png',
+      description: 'Lorem Ipsum',
+      price: 160.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+    Product(
+      id: 1,
+      name: "Casual 3",
+      categoryId: 3,
+      image: 'assets/images/casual/img3.png',
+      description: 'Lorem Ipsum',
+      price: 160.00,
+      quantity: 1,
+      totalQuantity: 10,
+    ),
+  ];
+
+  // Combine T-Shirt and Polo-Shirt Lists
+  static List<Product> allProducts = [
+    ...tShirtList,
+    ...poloShirtList,
+    ...casualWear,
+  ];
+}
+
+
