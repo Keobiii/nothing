@@ -11,16 +11,29 @@ class _ProductFormPageState extends State<ProductFormPage> {
   var _productName;
   var _description;
   var _quantity;
+  var _price;
+
+  var _productNameEdit;
+  var _descriptionEdit;
+  var _quantityEdit;
+  var _priceEdit;
 
   final _productNameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _quantityController = TextEditingController();
+  final _priceController = TextEditingController();
+
+  final _productEditNameController = TextEditingController();
+  final _descriptionEditController = TextEditingController();
+  final _quantityEditController = TextEditingController();
+  final _priceEditController = TextEditingController();
 
   void _updateUserForm() {
     setState(() {
       _productName = _productNameController.text;
       _description = _descriptionController.text;
       _quantity = _quantityController.text;
+      _price = _priceController.text;
     });
   }
 
@@ -48,320 +61,523 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
   String? selectedValue = null;
 
+  final List<Product> allProducts = [
+    ...ProductList.tShirtList,
+    ...ProductList.poloShirtList,
+    ...ProductList.casualWear,
+  ];
+
+  // Variable to hold the selected product
+  Product? selectedProduct;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomAppBar(title: "Hello, Kerby!"),
       backgroundColor: Colors.white,
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _addProductForm(context),
+              Form(
+                child: Column(
                   children: [
-                    const Text(
-                      'Add Product',
-                      style: TextStyle(
-                        fontSize: 27,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 50),
-                CustomTextFormField(
-                  controller: _productNameController,
-                  labelText: 'Product Name',
-                  icon: Icons.person_outline_outlined,
-                  keyboardType: TextInputType.text,
-                  validator: (value) {
-                    if (value == null || value.toString().isEmpty) {
-                      return 'Please enter some text';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Category',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    // DropdownButton(
-                    //   menuWidth: double.infinity,
-                    //   value: selectedValue,
-                    //   items: dropdownItems,
-                    //   onChanged: (String? newValue) {
-                    //     setState(() {
-                    //       selectedValue = newValue!;
-                    //     });
-                    //   },
-                    // ),
-                    DropdownButtonFormField(
-                      decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black, width: 2),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black, width: 2),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator:
-                          (value) => value == null ? "Select a category" : null,
-                      dropdownColor: Colors.white,
-                      value: selectedValue,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedValue = newValue!;
-                        });
-                      },
-                      items: dropdownItems,
-                    ),
-
-                    SizedBox(height: 20),
-                    CustomTextFormField(
-                      controller: _descriptionController,
-                      labelText: 'Description',
-                      icon: Icons.person_outline_outlined,
-                      keyboardType: TextInputType.text,
-                      maxLiness: null,
-                      validator: (value) {
-                        if (value == null || value.toString().isEmpty) {
-                          return 'Please enter some text';
-                        }
-                        return null;
-                      },
-                    ),
-
-                    SizedBox(height: 20),
-                    CustomTextFormField(
-                      controller: _quantityController,
-                      isNumber: true,
-                      labelText: 'Quantity',
-                      icon: Icons.person_outline_outlined,
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.toString().isEmpty) {
-                          return 'Please enter some text';
-                        }
-                        return null;
-                      },
-                    ),
-
-                    SizedBox(height: 20),
-                    Container(
-                      width: double.infinity,
-                      height: 60,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          elevation: 2.0,
-                          shadowColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                        child: Text(
-                          'Add Product',
-                          style: const TextStyle(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Select a Product:",
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
                           ),
                         ),
-                      ),
+                        SizedBox(height: 10),
+                        DropdownButtonFormField<Product>(
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                          hint: Text("Choose a product"),
+                          value: selectedProduct,
+                          onChanged: (Product? newValue) {
+                            setState(() {
+                              selectedProduct = newValue;
+                            });
+                          },
+                          items:
+                              allProducts.map((product) {
+                                return DropdownMenuItem<Product>(
+                                  value: product,
+                                  child: Text(product.name),
+                                );
+                              }).toList(),
+                        ),
+                        SizedBox(height: 20),
+                        // Show selected product details
+                        if (selectedProduct != null) ...[
+                           _productEditNameController = selectedProduct.name;
+                          _descriptionEditController = selectedProduct.name;
+                          _quantityEditController = selectedProduct.name;
+                          _priceEditController = selectedProduct.name;
+                          Text(
+                            "Product Details:",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Text("Name: ${selectedProduct!.name}"),
+                          Text(
+                            "Category: ${_getCategoryName(selectedProduct!.categoryId)}",
+                          ),
+                          Text("Description: ${selectedProduct!.description}"),
+                          Text("Price: ${selectedProduct!.price}"),
+                          Text("Quantity: ${selectedProduct!.quantity}"),
+                          Text("Image: ${selectedProduct!.image}"),
+                        ],
+
+
+                        SizedBox(height: 50),
+                        CustomTextFormField(
+                          controller: _productEditNameController,
+                          labelText: 'Product Name',
+                          icon: Icons.person_outline_outlined,
+                          keyboardType: TextInputType.text,
+                          validator: (value) {
+                            if (value == null || value.toString().isEmpty) {
+                              return 'Please enter some text';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        SizedBox(height: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Category',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            // DropdownButton(
+                            //   menuWidth: double.infinity,
+                            //   value: selectedValue,
+                            //   items: dropdownItems,
+                            //   onChanged: (String? newValue) {
+                            //     setState(() {
+                            //       selectedValue = newValue!;
+                            //     });
+                            //   },
+                            // ),
+                            DropdownButtonFormField(
+                              decoration: InputDecoration(
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.black,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.black,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                              ),
+                              validator:
+                                  (value) =>
+                                      value == null
+                                          ? "Select a category"
+                                          : null,
+                              dropdownColor: Colors.white,
+                              value: selectedValue,
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  selectedValue = newValue!;
+                                });
+                              },
+                              items: dropdownItems,
+                            ),
+
+                            SizedBox(height: 20),
+                            CustomTextFormField(
+                              controller: _descriptionEditController,
+                              labelText: 'Description',
+                              icon: Icons.person_outline_outlined,
+                              keyboardType: TextInputType.text,
+                              maxLiness: null,
+                              validator: (value) {
+                                if (value == null || value.toString().isEmpty) {
+                                  return 'Please enter some text';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            SizedBox(height: 20),
+                            CustomTextFormField(
+                              controller: _priceEditController,
+                              isNumber: true,
+                              labelText: 'Price',
+                              icon: Icons.person_outline_outlined,
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.toString().isEmpty) {
+                                  return 'Please enter some text';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            SizedBox(height: 20),
+                            CustomTextFormField(
+                              controller: _quantityEditController,
+                              isNumber: true,
+                              labelText: 'Quantity',
+                              icon: Icons.person_outline_outlined,
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.toString().isEmpty) {
+                                  return 'Please enter some text';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            SizedBox(height: 20),
+                            Container(
+                              width: double.infinity,
+                              height: 60,
+
+                              // child: ElevatedButton(
+                              //   onPressed: () {},
+                              //   style: ElevatedButton.styleFrom(
+                              //     backgroundColor: Colors.blue,
+                              //     elevation: 2.0,
+                              //     shadowColor: Colors.black,
+                              //     shape: RoundedRectangleBorder(
+                              //       borderRadius: BorderRadius.circular(4),
+                              //     ),
+                              //   ),
+                              //   child: Text(
+                              //     'Add Product',
+                              //     style: const TextStyle(
+                              //       fontSize: 18,
+                              //       fontWeight: FontWeight.bold,
+                              //       color: Colors.white,
+                              //     ),
+                              //   ),
+                              // ),
+                              child: ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  elevation: 2.0,
+                                  shadowColor: Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Add Product',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+
+  // Helper to get category name by ID
+  String _getCategoryName(int categoryId) {
+    switch (categoryId) {
+      case 1:
+        return "T-Shirt";
+      case 2:
+        return "Polo-Shirt";
+      case 3:
+        return "Casual Wear";
+      default:
+        return "Unknown";
+    }
+  }
+
+  Form _addProductForm(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Add Product',
+                style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          SizedBox(height: 50),
+          CustomTextFormField(
+            controller: _productNameController,
+            labelText: 'Product Name',
+            icon: Icons.person_outline_outlined,
+            keyboardType: TextInputType.text,
+            validator: (value) {
+              if (value == null || value.toString().isEmpty) {
+                return 'Please enter some text';
+              }
+              return null;
+            },
+          ),
+
+          SizedBox(height: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Category',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: 10),
+              // DropdownButton(
+              //   menuWidth: double.infinity,
+              //   value: selectedValue,
+              //   items: dropdownItems,
+              //   onChanged: (String? newValue) {
+              //     setState(() {
+              //       selectedValue = newValue!;
+              //     });
+              //   },
+              // ),
+              DropdownButtonFormField(
+                decoration: InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black, width: 2),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black, width: 2),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                validator:
+                    (value) => value == null ? "Select a category" : null,
+                dropdownColor: Colors.white,
+                value: selectedValue,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedValue = newValue!;
+                  });
+                },
+                items: dropdownItems,
+              ),
+
+              SizedBox(height: 20),
+              CustomTextFormField(
+                controller: _descriptionController,
+                labelText: 'Description',
+                icon: Icons.person_outline_outlined,
+                keyboardType: TextInputType.text,
+                maxLiness: null,
+                validator: (value) {
+                  if (value == null || value.toString().isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+
+              SizedBox(height: 20),
+              CustomTextFormField(
+                controller: _priceController,
+                isNumber: true,
+                labelText: 'Price',
+                icon: Icons.person_outline_outlined,
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.toString().isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+
+              SizedBox(height: 20),
+              CustomTextFormField(
+                controller: _quantityController,
+                isNumber: true,
+                labelText: 'Quantity',
+                icon: Icons.person_outline_outlined,
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.toString().isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+
+              SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                height: 60,
+
+                // child: ElevatedButton(
+                //   onPressed: () {},
+                //   style: ElevatedButton.styleFrom(
+                //     backgroundColor: Colors.blue,
+                //     elevation: 2.0,
+                //     shadowColor: Colors.black,
+                //     shape: RoundedRectangleBorder(
+                //       borderRadius: BorderRadius.circular(4),
+                //     ),
+                //   ),
+                //   child: Text(
+                //     'Add Product',
+                //     style: const TextStyle(
+                //       fontSize: 18,
+                //       fontWeight: FontWeight.bold,
+                //       color: Colors.white,
+                //     ),
+                //   ),
+                // ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      final price_ = _priceController.text;
+                      var finalPrice;
+
+                      final quantity_ = _quantityController.text;
+                      var finalQuan;
+
+                      try {
+                        finalPrice = double.parse(price_);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Price Error: " + e.toString()),
+                          ),
+                        );
+                      }
+
+                      try {
+                        finalQuan = int.parse(quantity_);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Quantity Error: " + e.toString()),
+                          ),
+                        );
+                      }
+
+                      // categoryId based on selectedValue
+                      int categoryId = int.parse(selectedValue!);
+
+                      // image from assets in the chosen category
+                      List<Product> categoryList;
+                      switch (categoryId) {
+                        case 1:
+                          categoryList = ProductList.tShirtList;
+                          break;
+                        case 2:
+                          categoryList = ProductList.poloShirtList;
+                          break;
+                        case 3:
+                          categoryList = ProductList.casualWear;
+                          break;
+                        default:
+                          throw Exception('Invalid categoryId');
+                      }
+
+                      // Choose a random image from category assets
+                      String randomImage =
+                          categoryList[Random().nextInt(categoryList.length)]
+                              .image;
+
+                      // Add product to the list
+                      Product newProduct = Product(
+                        id: categoryId,
+                        name: _productNameController.text,
+                        categoryId: categoryId,
+                        image: randomImage,
+                        description: _descriptionController.text,
+                        price: finalPrice,
+                        quantity: 1,
+                        totalQuantity: finalQuan,
+                      );
+
+                      categoryList.add(newProduct);
+
+                      //  a success message
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Product added successfully!")),
+                      );
+
+                      // Clear the forms
+                      _productNameController.clear();
+                      _descriptionController.clear();
+                      _quantityController.clear();
+                      _priceController.clear();
+                      setState(() {
+                        selectedValue = null;
+                      });
+                    } else {
+                      // errors
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Please fill out all fields")),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    elevation: 2.0,
+                    shadowColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  child: Text(
+                    'Add Product',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
-
-
-
-
-
-
-List<Map<String, dynamic>> categories = [
-  {'id': 0, 'name': 'all'},
-  {'id': 1, 'name': 't-shirt'},
-  {'id': 2, 'name': 'polo-shirt'},
-  {'id': 3, 'name': 'casual'},
-];
-
-
-
-import 'package:shopping/data/models/Product.dart';
-
-class ProductList {
-  static List<Product> tShirtList = [
-    // T-shirt
-    Product(
-      id: 1,
-      name: 'T-Shirt 1',
-      categoryId: 1,
-      image: 'assets/images/t-shirt/img1.png',
-      description: 'Lorem Ipsum',
-      price: 100.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-    Product(
-      id: 1,
-      name: 'T-Shirt 2',
-      categoryId: 1,
-      image: 'assets/images/t-shirt/img2.png',
-      description: 'Lorem Ipsum',
-      price: 200.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-    Product(
-      id: 1,
-      name: 'T-Shirt 3',
-      categoryId: 1,
-      image: 'assets/images/t-shirt/img3.png',
-      description: 'Lorem Ipsum',
-      price: 220.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-  ];
-
-  static List<Product> poloShirtList = [
-    // Polo-Shirt
-    Product(
-      id: 1,
-      name: 'Polo-Shirt 10',
-      categoryId: 2,
-      image: 'assets/images/polo-shirt/img1.png',
-      description: 'Lorem Ipsum u g',
-      price: 100.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-    Product(
-      id: 1,
-      name: 'Polo-Shirt 2',
-      categoryId: 2,
-      image: 'assets/images/polo-shirt/img2.png',
-      description: 'Lorem Ipsum',
-      price: 200.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-    Product(
-      id: 1,
-      name: 'Polo-Shirt 3',
-      categoryId: 2,
-      image: 'assets/images/polo-shirt/img3.png',
-      description: 'Lorem Ipsum',
-      price: 220.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-    Product(
-      id: 1,
-      name: 'Polo-Shirt 4',
-      categoryId: 2,
-      image: 'assets/images/polo-shirt/img4.png',
-      description: 'Lorem Ipsum',
-      price: 240.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-    Product(
-      id: 1,
-      name: 'Polo-Shirt 5',
-      categoryId: 2,
-      image: 'assets/images/polo-shirt/img5.png',
-      description: 'Lorem Ipsum',
-      price: 240.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-    Product(
-      id: 1,
-      name: 'Polo-Shirt 6',
-      categoryId: 2,
-      image: 'assets/images/polo-shirt/img6.png',
-      description: 'Lorem Ipsum',
-      price: 240.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-    Product(
-      id: 1,
-      name: 'Polo-Shirt 7',
-      categoryId: 2,
-      image: 'assets/images/polo-shirt/img7.png',
-      description: 'Lorem Ipsum',
-      price: 240.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-  ];
-
-  static List<Product> casualWear = [
-    Product(
-      id: 1,
-      name: "Casual 1",
-      categoryId: 3,
-      image: 'assets/images/casual/img1.png',
-      description: 'Lorem Ipsum',
-      price: 160.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-    Product(
-      id: 1,
-      name: "Casual 2",
-      categoryId: 3,
-      image: 'assets/images/casual/img2.png',
-      description: 'Lorem Ipsum',
-      price: 160.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-    Product(
-      id: 1,
-      name: "Casual 3",
-      categoryId: 3,
-      image: 'assets/images/casual/img3.png',
-      description: 'Lorem Ipsum',
-      price: 160.00,
-      quantity: 1,
-      totalQuantity: 10,
-    ),
-  ];
-
-  // Combine T-Shirt and Polo-Shirt Lists
-  static List<Product> allProducts = [
-    ...tShirtList,
-    ...poloShirtList,
-    ...casualWear,
-  ];
-}
-
-
