@@ -1,19 +1,46 @@
-    // Checkout
-    on<CheckoutEvent>((event, emit) {
-      if (state is CartLoaded) {
-        List<Product> updatedCart = List<Product>.from((state as CartLoaded).cart);
+class BottomNavigationScreen extends StatefulWidget {
+  const BottomNavigationScreen({super.key});
 
-        for (Product product in updatedCart) {
-          product.totalQuantity -= product.quantity; 
-          product.quantity = 1;
-        }
+  @override
+  _BottomNavigationScreenState createState() => _BottomNavigationScreenState();
+}
 
-        updatedCart.clear();
+class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
+  int _currentIndex = 0;
 
-        emit(CartLoaded(updatedCart)); 
+  final List<Widget> _pages = [
+    HomePage(),
+    ShopPage(),
+    WishlistPage(),
+    SettingsPage(),
+  ];
 
-        
-      }
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
     });
-
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(index: _currentIndex, children: _pages),
+      bottomNavigationBar: NavigationBar(
+        height: 80,
+        elevation: 0,
+        backgroundColor: Colors.black,
+        selectedIndex: _currentIndex,
+        onDestinationSelected: _onTabTapped,
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.shop_outlined), label: 'Shop'),
+          NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
+          NavigationDestination(
+            icon: Icon(Icons.person_2_outlined),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
