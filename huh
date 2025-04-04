@@ -251,3 +251,20 @@ class Product {
     );
   }
 
+
+  List<DropdownMenuItem<String>> get dropdownItems {
+    // getting categories list except for the id = 0
+    List<Map<String, dynamic>> filteredCategories =
+        categories.where((item) => item['id'] != 0).toList();
+
+    // Dropdown menu
+    List<DropdownMenuItem<String>> menuItems =
+        filteredCategories.map((item) {
+          return DropdownMenuItem(
+            child: Text(item['name'].toString()),
+            value: item['id'].toString(),
+          );
+        }).toList();
+
+    return menuItems;
+  }
