@@ -1,18 +1,32 @@
- child: Slidable(
-                            endActionPane: ActionPane(
-                              motion: const ScrollMotion(),
-                              children: [
-                                SlidableAction(
-                                  onPressed: (context) {
-                                    // cartList.removeAt(index);
-                                    carts.removeAt(index);
-                                    // context.read<CartBloc>().add(ToggleCartEvent(widget.product));
-                                    setState(() {});
-                                  },
-                                  backgroundColor: Colors.red,
-                                  foregroundColor: Colors.white,
-                                  icon: Icons.delete,
-                                  label: 'Delete',
-                                ),
-                              ],
-                            ),
+  Container _caoursel(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.20,
+      width: double.infinity,
+      child: Stack(
+        // children: [
+        //   PageView(
+        //     controller: _pageController,
+        //     children: carouselItem,
+        //   )
+        // ],
+        children: [
+          PageView(
+            // controller: _pageController,
+            children: [
+              for (var bannerItem in BannerImage.values)
+                CaourselItem(bannerItem.imageAsset),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  // late PageController _pageController;
+
+  // @override
+  // void initState() {
+  //   _pageController = PageController();
+  //   super.initState();
+  // }
