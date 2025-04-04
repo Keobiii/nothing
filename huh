@@ -185,3 +185,69 @@ class Product {
     required this.totalQuantity,
   });
 }
+
+
+
+  Form _getProductData() {
+    return Form(
+      child: Column(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Select a Product:",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              DropdownButtonFormField<Product>(
+                decoration: InputDecoration(border: OutlineInputBorder()),
+                hint: Text("Choose a product"),
+                value: selectedProduct,
+                onChanged: (Product? newValue) {
+                  setState(() {
+                    isEditingMode = true;
+                    selectedProduct = newValue;
+                    _productIDController.text = newValue?.id.toString() ?? '';
+                    _productNameController.text = newValue?.name ?? '';
+                    _descriptionController.text = newValue?.description ?? '';
+                    _priceController.text = newValue?.price.toString() ?? '';
+                    _quantityController.text =
+                        newValue?.totalQuantity.toString() ?? '';
+
+                    selectedValue = newValue?.categoryId.toString() ?? '';
+                  });
+                },
+                items:
+                    allProducts.map((product) {
+                      return DropdownMenuItem<Product>(
+                        value: product,
+                        child: Text(product.name),
+                      );
+                    }).toList(),
+              ),
+              SizedBox(height: 20),
+              // Show selected product details
+              // if (selectedProduct != null) ...[
+              //   Text(
+              //     "Product Details:",
+              //     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              //   ),
+              //   SizedBox(height: 10),
+              //   Text("ID: ${selectedProduct!.id}"),
+              //   Text("Name: ${selectedProduct!.name}"),
+              //   Text(
+              //     "Category: ${_getCategoryName(selectedProduct!.categoryId)}",
+              //   ),
+              //   Text("Description: ${selectedProduct!.description}"),
+              //   Text("Price: ${selectedProduct!.price}"),
+              //   Text("Quantity: ${selectedProduct!.quantity}"),
+              //   Text("Image: ${selectedProduct!.image}"),
+              // ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
