@@ -1,148 +1,44 @@
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
-
-  @override
-  State<LoginPage> createState() => _LoginPageState();
+void main() {
+  runApp(const MyApp());
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Future<void> checkCredentials() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    final prefs = await SharedPreferences.getInstance();
+    final String? userToken = prefs.getString('user_token');
+
+    if (userToken == null || userToken.isEmpty) {
+      LoginPage();
+    } else {
+      // go to bottomnaviagtion
+       BottomNavigationScreen();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFCFCFF),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                child: Image.asset(
-                  'assets/images/shopify-logo.png',
-                  width: 150,
-                ),
-              ),
-              SizedBox(height: 40),
-              CustomTextFormField(
-                labelText: 'Email',
-                icon: Icons.person_outline_outlined,
-                keyboardType: TextInputType.text,
-                validator: (value) {
-                  if (value == null || value.toString().isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 10),
-              CustomTextFormField(
-                labelText: 'Password',
-                icon: Icons.password_outlined,
-                isPassword: true,
-                keyboardType: TextInputType.visiblePassword,
-                validator: (value) {
-                  if (value == null || value.toString().isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  print('Email: ' + _emailController.text);
-                  print(_passwordController.text);
-                  if (_emailController.text == "kerby@gmail.com" &&
-                      _passwordController.text == "123") {
-                    // final SharedPreferences sharedPreferences =
-                    //     await SharedPreferences.getInstance();
-
-                    // sharedPreferences.setString('email', _emailController.text);
-                    // sharedPreferences.setString(
-                    //   'password',
-                    //   _passwordController.text,
-                    // );
-
-                    print(_emailController.text);
-                    print(_passwordController.text);
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const BottomNavigationScreen(),
-                      ),
-                    );
-                  } else {
-                    final snackBar = SnackBar(
-                      content: const Text('Yay! A SnackBar!'),
-                      action: SnackBarAction(label: 'Undo', onPressed: () {}),
-                    );
-
-                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                  }
-                },
-                label: const Text(
-                  'Login',
-                  style: TextStyle(color: Colors.black, fontSize: 14),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFFCFCFF),
-                  side: const BorderSide(color: Colors.black, width: 1),
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 50),
-
-              Row(
-                children: [
-                  Expanded(child: Divider(color: Colors.black, thickness: 1)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text("OR", style: const TextStyle(fontSize: 16)),
-                  ),
-                  Expanded(child: Divider(color: Colors.black, thickness: 1)),
-                ],
-              ),
-
-              SizedBox(height: 20),
-
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignUpPage()),
-                  );
-                },
-                label: const Text(
-                  'Login with Google',
-                  style: TextStyle(color: Colors.black, fontSize: 14),
-                ),
-                icon: SizedBox(
-                  height: 25,
-                  width: 25,
-                  child: SvgPicture.asset('assets/vectors/google.svg'),
-                ),
-
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFFCFCFF),
-                  side: const BorderSide(color: Colors.black, width: 1),
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+    return MultiBlocProvider(
+      providers: [
+        // ChangeNotifierProvider(create: (_) => FavoriteProvider()),
+        // ChangeNotifierProvider(create: (_) => CartProvider())
+        BlocProvider(create: (_) => FavoriteBloc()),
+        BlocProvider(create: (_) => CartBloc()),
+        BlocProvider(create: (_) => ProductBloc()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        // home: const BottomNavigationScreen(),
+        home: checkCredentials(),
+        theme: ThemeData(textTheme: GoogleFonts.merriweatherTextTheme()),
+        // home: GoogleNavigation(),
       ),
     );
   }
