@@ -1,15 +1,61 @@
-Container(
-                        child: BlocBuilder<ProductBloc, ProductState>(
-                          builder: (context, state) {
-                            if (state is ProductLoaded) {
-                              final products = state.product_model;
-                              if (products.isEmpty) {
-                                return Center(child: Text('No Item Added'));
-                              }
+import 'package:shopping/data/models/Product.dart';
 
-                              return ProductGrid(products: products);
-                            }
-                            return Center(child: Text('No Product Available'));
-                          },
-                        ),
-                      ),
+class ProductList {
+  static List<Product> tShirtList = [];
+
+  static List<Product> poloShirtList = [];
+
+  static List<Product> casualWear = [];
+
+  // Combine T-Shirt and Polo-Shirt Lists
+  static List<Product> get allProducts {
+    return [...tShirtList, ...poloShirtList, ...casualWear];
+  }
+}
+
+
+
+
+sealed class ProductState {}
+
+final class ProductInitial extends ProductState {}
+
+final class ProductLoaded extends ProductState {
+  final List<Product> product_model;
+
+  ProductLoaded({required this.product_model});
+}
+
+
+
+sealed class ProductEvent {}
+
+final class AddProductRequest extends ProductEvent {
+  final Product product;
+
+  AddProductRequest({required this.product});
+}
+
+class ProductBloc extends Bloc<ProductEvent, ProductState> {
+  List<Product> products = [];
+  int _nextId = 1;
+
+  ProductBloc() : super(ProductInitial()) {
+    on<AddProductRequest>((event, emit) {
+      final newProduct = Product(
+        id: _nextId++,
+        name: event.product.name,
+        categoryId: event.product.categoryId,
+        image: event.product.image,
+        description: event.product.description,
+        price: event.product.price,
+        quantity: 1,
+        totalQuantity: event.product.totalQuantity,
+      );
+
+      products.add(newProduct);
+      emit(ProductLoaded(product_model: products));
+      print('Emit Reached');
+    });
+  }
+}
