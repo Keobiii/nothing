@@ -1,32 +1,15 @@
-  Container _caoursel(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.20,
-      width: double.infinity,
-      child: Stack(
-        // children: [
-        //   PageView(
-        //     controller: _pageController,
-        //     children: carouselItem,
-        //   )
-        // ],
-        children: [
-          PageView(
-            // controller: _pageController,
-            children: [
-              for (var bannerItem in BannerImage.values)
-                CaourselItem(bannerItem.imageAsset),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+Container(
+                        child: BlocBuilder<ProductBloc, ProductState>(
+                          builder: (context, state) {
+                            if (state is ProductLoaded) {
+                              final products = state.product_model;
+                              if (products.isEmpty) {
+                                return Center(child: Text('No Item Added'));
+                              }
 
-
-  // late PageController _pageController;
-
-  // @override
-  // void initState() {
-  //   _pageController = PageController();
-  //   super.initState();
-  // }
+                              return ProductGrid(products: products);
+                            }
+                            return Center(child: Text('No Product Available'));
+                          },
+                        ),
+                      ),
