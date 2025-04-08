@@ -1,25 +1,21 @@
-class AddProduct extends StatefulWidget {
-  const AddProduct({super.key});
+class EditProduct extends StatefulWidget {
+  final int productId;
+  const EditProduct({super.key, required this.productId});
 
   @override
-  State<AddProduct> createState() => _AddProductState();
+  State<EditProduct> createState() => _EditProductState();
 }
 
-class _AddProductState extends State<AddProduct> {
+class _EditProductState extends State<EditProduct> {
   final _formKey = GlobalKey<FormState>();
 
   bool isEditingMode = false;
 
-  var _productName;
-  var _productDescription;
-  var _productQuantity;
-  var _productPrice;
-
-  final _productIDController = TextEditingController();
-  final _productNameController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _quantityController = TextEditingController();
-  final _priceController = TextEditingController();
+  final _editProductIDController = TextEditingController();
+  final _editProductNameController = TextEditingController();
+  final _editDescriptionController = TextEditingController();
+  final _editQuantityController = TextEditingController();
+  final _editPriceController = TextEditingController();
 
   // Dropdown items for categories
   List<DropdownMenuItem<String>> get dropdownItems {
@@ -37,41 +33,39 @@ class _AddProductState extends State<AddProduct> {
   String? selectedValue = null;
 
   @override
-  void initState() {
-    super.initState();
-
-    _productNameController.addListener(_productForm);
-    _descriptionController.addListener(_productForm);
-    _quantityController.addListener(_productForm);
-    _priceController.addListener(_productForm);
-  }
-
-  void _productForm() {
-    setState(() {
-      _productName = _productNameController.text;
-      _productDescription = _descriptionController.text;
-      _productQuantity = _quantityController.text;
-      _productPrice = _priceController.text;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final productBloc = context.read<ProductBloc>();
+    final productList = productBloc.products;
+
+    final product = productList.firstWhere((s) => s.id == widget.productId);
+
+    _editProductIDController.text = product.id.toString();
+    _editProductNameController.text = product.name;
+    _editDescriptionController.text = product.description;
+    _editQuantityController.text = product.totalQuantity.toString();
+    _editPriceController.text = product.price.toString();
+
+    selectedValue = product.categoryId.toString();
+
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: true,
+        backgroundColor: Colors.white,
+      ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [_addProductForm(context)],
+            children: [_EditProductForm(context)],
           ),
         ),
       ),
     );
   }
 
-  Form _addProductForm(BuildContext context) {
+  Form _EditProductForm(BuildContext context) {
     return Form(
       key: _formKey,
       child: Column(
@@ -80,7 +74,7 @@ class _AddProductState extends State<AddProduct> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Add Product',
+                'Update Product',
                 style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
               ),
             ],
@@ -88,7 +82,19 @@ class _AddProductState extends State<AddProduct> {
           SizedBox(height: 50),
 
           CustomTextFormField(
-            controller: _productNameController,
+            controller: _editProductIDController,
+            labelText: 'Product ID',
+            icon: Icons.person_outline_outlined,
+            keyboardType: TextInputType.text,
+            validator: (value) {
+              if (value == null || value.toString().isEmpty) {
+                return 'Please enter some text';
+              }
+              return null;
+            },
+          ),
+          CustomTextFormField(
+            controller: _editProductNameController,
             labelText: 'Product Name',
             icon: Icons.person_outline_outlined,
             keyboardType: TextInputType.text,
@@ -136,7 +142,7 @@ class _AddProductState extends State<AddProduct> {
 
               SizedBox(height: 20),
               CustomTextFormField(
-                controller: _descriptionController,
+                controller: _editDescriptionController,
                 labelText: 'Description',
                 icon: Icons.person_outline_outlined,
                 keyboardType: TextInputType.text,
@@ -151,7 +157,7 @@ class _AddProductState extends State<AddProduct> {
 
               SizedBox(height: 20),
               CustomTextFormField(
-                controller: _priceController,
+                controller: _editPriceController,
                 isNumber: true,
                 labelText: 'Price',
                 icon: Icons.person_outline_outlined,
@@ -166,7 +172,7 @@ class _AddProductState extends State<AddProduct> {
 
               SizedBox(height: 20),
               CustomTextFormField(
-                controller: _quantityController,
+                controller: _editQuantityController,
                 isNumber: true,
                 labelText: 'Quantity',
                 icon: Icons.person_outline_outlined,
@@ -182,6 +188,7 @@ class _AddProductState extends State<AddProduct> {
               SizedBox(height: 20),
               Container(
                 width: double.infinity,
+                height: 150,
                 child: Column(
                   children: [
                     SizedBox(
@@ -189,10 +196,10 @@ class _AddProductState extends State<AddProduct> {
                       height: 50,
                       child: ElevatedButton(
                         onPressed: () {
-                          final price_ = _priceController.text;
+                          final price_ = _editPriceController.text;
                           var finalPrice;
 
-                          final quantity_ = _quantityController.text;
+                          final quantity_ = _editQuantityController.text;
                           var finalQuan;
 
                           try {
@@ -203,6 +210,7 @@ class _AddProductState extends State<AddProduct> {
                                 content: Text("Price Error: " + e.toString()),
                               ),
                             );
+                            return;
                           }
 
                           try {
@@ -215,6 +223,16 @@ class _AddProductState extends State<AddProduct> {
                                 ),
                               ),
                             );
+                            return;
+                          }
+
+                          if (selectedValue == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Please select a category"),
+                              ),
+                            );
+                            return;
                           }
 
                           int categoryId = int.parse(selectedValue!);
@@ -233,33 +251,46 @@ class _AddProductState extends State<AddProduct> {
                             default:
                               throw Exception('Invalid categoryId');
                           }
-
+                          print(widget.productId);
+                          print(
+                            "Dispatching update for product ID: ${widget.productId}",
+                          );
                           final product = Product(
-                            id: 0,
-                            name: _productNameController.text,
+                            id: widget.productId,
+                            name: _editProductNameController.text,
                             categoryId: categoryId,
                             image: 'assets/images/casual/img2.png',
-                            description: _descriptionController.text,
+                            description: _editDescriptionController.text,
                             price: finalPrice,
                             quantity: 1,
                             totalQuantity: finalQuan,
                           );
+
+                          print("Final Product Data:");
+                          print("ID: ${product.id}");
+                          print("Name: ${product.name}");
+                          print("Category ID: ${product.categoryId}");
+                          print("Image: ${product.image}");
+                          print("Description: ${product.description}");
+                          print("Price: ${product.price}");
+                          print("Quantity: ${product.quantity}");
+                          print("Total Quantity: ${product.totalQuantity}");
+
                           context.read<ProductBloc>().add(
-                            AddProductRequest(product: product),
+                            ProductUpdateRequest(updatedProduct: product),
                           );
 
-                          _productIDController.text = "";
-                          _productNameController.text = "";
-                          _quantityController.text = "";
-                          _descriptionController.text = "";
-                          _priceController.text = "";
-                          selectedValue = null;
+                          // Clear inputs
+                          _editProductIDController.clear();
+                          _editProductNameController.clear();
+                          _editQuantityController.clear();
+                          _editDescriptionController.clear();
+                          _editPriceController.clear();
+                          setState(() {
+                            selectedValue = null;
+                          });
 
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => BottomNavigationScreen(),
-                            ),
-                          );
+                          Navigator.of(context).pop();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFFFCFCFF),
@@ -273,7 +304,7 @@ class _AddProductState extends State<AddProduct> {
                           ),
                         ),
                         child: Text(
-                          'Add Product',
+                          'Update Product',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -285,42 +316,34 @@ class _AddProductState extends State<AddProduct> {
 
                     SizedBox(height: 30),
 
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _productIDController.text = "";
-                          _productNameController.text = "";
-                          _quantityController.text = "";
-                          _descriptionController.text = "";
-                          _priceController.text = "";
-                          selectedValue = null;
+                    ElevatedButton(
+                      onPressed: () {
+                        _editProductIDController.text = "";
+                        _editProductNameController.text = "";
+                        _editQuantityController.text = "";
+                        _editDescriptionController.text = "";
+                        _editPriceController.text = "";
+                        selectedValue = null;
 
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => BottomNavigationScreen(),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromARGB(255, 187, 187, 187),
-                          side: const BorderSide(
-                            color: Color.fromARGB(255, 160, 160, 160),
-                            width: 1,
-                          ),
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
-                          ),
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromARGB(255, 187, 187, 187),
+                        side: const BorderSide(
+                          color: Color.fromARGB(255, 160, 160, 160),
+                          width: 1,
                         ),
-                        child: Text(
-                          'Cancel',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       ),
                     ),
