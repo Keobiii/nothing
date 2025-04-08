@@ -1,119 +1,89 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping/data/models/Product.dart';
+onPressed: () {
+  if (_formKey.currentState!.validate()) {
+    final price_ = _priceController.text;
+    var finalPrice;
 
+    final quantity_ = _quantityController.text;
+    var finalQuan;
 
-// EVENTS
-abstract class ProductFormEvent {}
+    try {
+      finalPrice = double.parse(price_);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Price Error: " + e.toString()),
+        ),
+      );
+      return;
+    }
 
-class SelectProductEvent extends ProductFormEvent {
-  final Product? product;
-  SelectProductEvent(this.product);
-}
+    try {
+      finalQuan = int.parse(quantity_);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Quantity Error: " + e.toString(),
+          ),
+        ),
+      );
+      return;
+    }
 
-class AddProductEvent extends ProductFormEvent {
-  final Product product;
-  AddProductEvent(this.product);
-}
+    if (selectedValue == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please select a category")),
+      );
+      return;
+    }
 
-class UpdateProductEvent extends ProductFormEvent {
-  final Product product;
-  UpdateProductEvent(this.product);
-}
+    int categoryId = int.parse(selectedValue!);
 
-class ClearFormEvent extends ProductFormEvent {}
+    List<Product> categoryList;
+    switch (categoryId) {
+      case 1:
+        categoryList = ProductList.tShirtList;
+        break;
+      case 2:
+        categoryList = ProductList.poloShirtList;
+        break;
+      case 3:
+        categoryList = ProductList.casualWear;
+        break;
+      default:
+        throw Exception('Invalid categoryId');
+    }
 
+    final product = Product(
+      id: 0,
+      name: _productNameController.text,
+      categoryId: categoryId,
+      image: 'assets/images/casual/img2.png',
+      description: _descriptionController.text,
+      price: finalPrice,
+      quantity: 1,
+      totalQuantity: finalQuan,
+    );
 
-// STATES
-abstract class ProductFormState {}
+    context.read<ProductBloc>().add(
+      AddProductRequest(product: product),
+    );
 
-class ProductFormInitial extends ProductFormState {}
+    // Clear inputs
+    _productIDController.clear();
+    _productNameController.clear();
+    _quantityController.clear();
+    _descriptionController.clear();
+    _priceController.clear();
+    setState(() {
+      selectedValue = null;
+    });
 
-class ProductFormLoaded extends ProductFormState {
-  final List<Product> products;
-  final Product? selectedProduct;
-  final bool isEditing;
-
-  ProductFormLoaded({
-    required this.products,
-    this.selectedProduct,
-    this.isEditing = false,
-  });
-
-  ProductFormLoaded copyWith({
-    List<Product>? products,
-    Product? selectedProduct,
-    bool? isEditing,
-  }) {
-    return ProductFormLoaded(
-      products: products ?? this.products,
-      selectedProduct: selectedProduct ?? this.selectedProduct,
-      isEditing: isEditing ?? this.isEditing,
+    // Navigate
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => BottomNavigationScreen(),
+      ),
     );
   }
-}
-
-
-// BLOC
-class ProductFormBloc extends Bloc<ProductFormEvent, ProductFormState> {
-  ProductFormBloc()
-      : super(ProductFormLoaded(products: [
-          ...ProductList.tShirtList,
-          ...ProductList.poloShirtList,
-          ...ProductList.casualWear,
-        ])) {
-    on<SelectProductEvent>((event, emit) {
-      final currentState = state as ProductFormLoaded;
-      emit(currentState.copyWith(
-        selectedProduct: event.product,
-        isEditing: event.product != null,
-      ));
-    });
-
-    on<AddProductEvent>((event, emit) {
-      final currentState = state as ProductFormLoaded;
-      final updated = List<Product>.from(currentState.products)..add(event.product);
-      emit(currentState.copyWith(products: updated));
-    });
-
-    on<UpdateProductEvent>((event, emit) {
-      final currentState = state as ProductFormLoaded;
-      final updated = currentState.products.map((p) {
-        return p.id == event.product.id ? event.product : p;
-      }).toList();
-      emit(currentState.copyWith(products: updated));
-    });
-
-    on<ClearFormEvent>((event, emit) {
-      final currentState = state as ProductFormLoaded;
-      emit(currentState.copyWith(selectedProduct: null, isEditing: false));
-    });
-  }
-}
-
-
-
-final formBloc = context.read<ProductFormBloc>();
-final state = formBloc.state as ProductFormLoaded;
-
-if (state.isEditing && state.selectedProduct != null) {
-  final updatedProduct = state.selectedProduct!.copyWith(
-    name: _productNameController.text,
-    categoryId: int.parse(selectedValue!),
-    description: _descriptionController.text,
-    price: double.parse(_priceController.text),
-    totalQuantity: int.parse(_quantityController.text),
-  );
-  formBloc.add(UpdateProductEvent(updatedProduct));
-} else {
-  final newProduct = Product(
-    id: state.products.length + 1,
-    name: _productNameController.text,
-    categoryId: int.parse(selectedValue!),
-    image: getRandomImageFromCategory(int.parse(selectedValue!)),
-    description: _descriptionController.text,
-    price: double.parse(_priceController.text),
-    quantity: 1,
-    totalQuantity: int.parse(_quantityController.text),
-  );
-  formBloc.add(AddProductEvent(newProduct));
-}
+},
