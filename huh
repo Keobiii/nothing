@@ -80,3 +80,11 @@ enum Connectionstatus {
   connectedToMobile,
   noInternetConnection,
 }
+
+
+
+The argument type 'void Function(ConnectivityResult)' can't be assigned to the parameter type 'void Function(List<ConnectivityResult>)?'. dartargument_type_not_assignable
+Connectionstatus get connectedToWifi
+Type: Connectionstatus
+
+package:wifi/utils/ConnectionStatus.dart
