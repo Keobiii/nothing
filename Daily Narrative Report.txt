@@ -1,0 +1,49 @@
+Day 1: 3/10
+myself and i, we introduced in the company, introducing ourselves to each other, we give our chair and pc based on the position.
+
+Day 2: 3/11
+we assigned to setup our pc, and install some necessary applications
+
+Day 3: 3/12
+Seminar in our building, we met the HR of the company and talk about everything in the company, and we do some team activies
+
+Day 4: 3/13
+We have a meeting with our head of department and talk about the company and our rules as intern
+
+Day 5: 3/14
+We assigned to install the application required in development but it takes some time because of restriction in every pc and at the same time we read and learn about kotlin
+
+
+Day 6: 3/17
+The day we task to create a calculator using kotlin which is based on our knowledge, 
+- the problem i countered is lack of knowledge to implement functions in kotlin
+- the solution i made was to read and understand the documentation of kotlin
+
+Day 7: 3/18
+The dean ask me to absent
+
+Day 8: 3/19
+I continue to developing the calculator using kotlin
+
+
+Day 8: 3/20
+While waiting to check the calculator, i studied more about the kotlin
+
+Day 9: 3/21
+After the competition in school, i strive to the company and continue the to study and development
+
+
+Day 10: 3/24
+Then we switch from kotlin to flutter, we assign to study the kotlin and wait for the tasks
+
+Day 11: 3/25
+We assign to create calculator based on our knowledge in flutter, we restrict to not use any dependency
+
+Day 11: 3/26
+We continue to develop the calculator and study
+
+Day 11: 3/27
+We finalizing the app and study more about flutter
+
+Day 11: 3/28
+We have another seminar with HR and talk about core values of the company
