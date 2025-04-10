@@ -24,3 +24,6 @@ class ConnectionCubit extends Cubit<Connectionstatus> {
     });
   }
 }
+
+
+The argument type 'void Function(ConnectivityResult)' can't be assigned to the parameter type 'void Function(List<ConnectivityResult>)?'.
