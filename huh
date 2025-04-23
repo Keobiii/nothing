@@ -1,1 +1,136 @@
-generate image for the queen of hearts, where the lady/queen design based on the Philippines traditions including suit and tattoos. the design must be detailed and clear, the queen of hearts must be visible
+// App Route
+
+import '../features/mood_entry/models/mood_model.dart';
+import '../screens/main_screen.dart';
+
+
+final GoRouter router = GoRouter(
+  initialLocation: '/', // Start at Home (Not statistics to avoid crash)
+  routes: [
+    GoRoute(path: '/', builder: (context, state) => MoodEntryScreen()),
+    GoRoute(path: '/dashboard', builder: (context, state) => MoodLists()),
+    GoRoute(path: '/history', builder: (context, state) => MoodStats()),
+    GoRoute(path: '/statistics', builder: (context, state) => MoodStats()),
+    GoRoute(path: '/settings', builder: (context, state) => MoodSettings()),
+  ],
+);
+
+
+
+// Mood Navigation with Bloc
+class MoodNavigationBar extends StatelessWidget {
+  const MoodNavigationBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<NavigationBloc, NavigationState>(
+      listener: (context, state) {
+        switch (state.currentIndex) {
+          case 0:
+            context.go('/');
+            break;
+          case 1:
+            context.go('/dashboard');
+            break;
+          case 2:
+            context.go('/history');
+            break;
+          case 3:
+            context.go('/statistics');
+            break;
+          case 4:
+            context.go('/settings');
+            break;
+        }
+      },
+      builder: (context, state) {
+        return BottomNavigationBar(
+          backgroundColor: Colors.blueGrey.shade900,
+          currentIndex: state.currentIndex,
+          selectedItemColor: Colors.greenAccent,
+          unselectedItemColor: Colors.white,
+          type: BottomNavigationBarType.fixed,
+          elevation: 10,
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home, size: 24),
+              label: 'HOME',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.note, size: 24),
+              label: 'ADD',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.note, size: 24),
+              label: 'LOGS',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.pie_chart, size: 24),
+              label: 'STATS',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings, size: 24),
+              label: 'SETTINGS',
+            ),
+          ],
+          onTap: (index) {
+            context.read<NavigationBloc>().add(NavigationOnChanged(index));
+          },
+          selectedLabelStyle: const TextStyle(
+            fontFamily: 'Pixel',
+            fontSize: 10,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontFamily: 'Pixel',
+            fontSize: 10,
+          ),
+        );
+      },
+    );
+  }
+}
+
+
+// main.dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final repository = MoodRepository(prefs);
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => NavigationBloc()),
+        BlocProvider(create: (_) => MoodBloc(repository)),
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<NavigationBloc, NavigationState>(
+      builder: (context, state) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+            body: IndexedStack(
+              index: state.currentIndex,
+              children: [
+                MoodEntryScreen(),
+                MoodLists(),
+                MoodStats(),
+                MoodSettings(),
+              ],
+            ),
+            bottomNavigationBar: const MoodNavigationBar(),
+          ),
+        );
+      },
+    );
+  }
+}
+
