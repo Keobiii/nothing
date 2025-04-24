@@ -171,5 +171,131 @@ class DeleteUser extends UserEvent {
 
 
 
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  final UserRepository userRepository;
+
+  AuthBloc({required this.userRepository}) : super(AuthInitial()) {
+    on<RegisterUser>(_onRegisterUser);
+    on<LoginUser>(_onLoginUser);
+  }
+
+  // Future - represents a value that will be available later, like a promise.
+  // In this case, "_onRegisterUser" is an async function that promises to complete later.
+  // It doesn't return any data (void), but it performs an action: registering a user.
+
+  // void - means this function doesn't return any value.
+  // If we changed "void" to String, int, or User, that would mean it returns that data type.
+
+  // async - makes this function asynchronous.
+  // It allows us to use "await", which pauses the function until the awaited operation finishes.
+
+  // Emitter - comes from BLoC. It's used to emit new states (like loading, success, failure).
+  // When we emit a state, the UI listens and updates based on that state.
+
+  Future<void> _onRegisterUser(
+    RegisterUser event,
+    Emitter<AuthState> emit,
+  ) async {
+    // Tell the UI we're doing something (like showing a loading spinner)
+    emit(AuthLoading());
+
+    try {
+      // Try to add the user (like saving to Hive or a database)
+      await userRepository.addUser(event.user);
+
+      // If it's successful, emit AuthSuccess and pass the registered user
+      emit(AuthSuccess(event.user));
+    } catch (e) {
+      // If there's an error (like saving failed), emit an error state
+      emit(AuthFailure("Failed to register user."));
+    }
+  }
+
+  Future<void> _onLoginUser(LoginUser event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+
+    final user = await userRepository.getUserByNameAndPassword(
+      event.email,
+      event.password,
+    );
+
+    if (user != null) {
+      // Save to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('userId', user.userId);
+      await prefs.setInt('userRole', user.userRole);
+
+      emit(AuthSuccess(user));
+      print('User Role: ${user.userRole}');
+    } else {
+      emit(AuthFailure("Invalid credentials."));
+
+      print('Failed: ');
+    }
+  }
+}
+
+
+
+
+abstract class AuthEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+class RegisterUser extends AuthEvent {
+  final User user;
+
+  RegisterUser(this.user);
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class LoginUser extends AuthEvent {
+  final String email;
+  final String password;
+
+  LoginUser({required this.email, required this.password});
+
+  @override
+  List<Object?> get props => [email, password];
+}
+
+
+abstract class AuthState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+class AuthInitial extends AuthState {}
+
+class AuthLoading extends AuthState {}
+
+
+
+class AuthSuccess extends AuthState {
+  final User user;
+
+  AuthSuccess(this.user);
+  
+  // This props list tells Flutter: "If the user changes, then it's a new state"
+  // If the user is the same as before, don't update the UI (avoid unnecessary rebuilds)
+  @override
+  List<Object?> get props => [user];
+}
+
+
+class AuthFailure extends AuthState {
+  final String message;
+
+  AuthFailure(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+
+
 
 
