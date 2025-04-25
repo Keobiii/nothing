@@ -135,3 +135,71 @@ class MoodEntry extends StatelessWidget {
     );
   }
 }
+
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'carousel_event.dart';
+import 'carousel_state.dart';
+
+class SliderBloc extends Bloc<SliderOnChanged, SliderState> {
+  final int currentSliderIndex = 1;
+
+  SliderBloc() : super(SliderState(currentSliderIndex: 1)) {
+    on<SliderOnChanged>((event, emit) {
+      emit(SliderState(currentSliderIndex: event.currentSliderIndex));
+      print("Slider New Index; ${event.currentSliderIndex}");
+    });
+  }
+}
+
+import 'package:equatable/equatable.dart';
+
+class SliderOnChanged {
+  final int currentSliderIndex;
+
+  SliderOnChanged({required this.currentSliderIndex});
+}
+
+class SliderState {
+  final int currentSliderIndex;
+
+  SliderState({required this.currentSliderIndex});
+}
+
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final appDocDir = await getApplicationDocumentsDirectory();
+  Hive.init(appDocDir.path);
+  Hive.registerAdapter(MoodModelAdapter());
+  final moodBox = await Hive.openBox<MoodModel>('daily_moods');
+
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        RepositoryProvider(create: (_) => MoodRepository()),
+        BlocProvider(create: (_) => NavigationBloc()),
+        BlocProvider(
+          create:
+              (context) =>
+                  MoodBloc(moodRepository: context.read<MoodRepository>()),
+        ),
+        BlocProvider(create: (_) => SliderBloc()),
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      routerConfig: router,
+    );
+  }
+}
