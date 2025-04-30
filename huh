@@ -1,10 +1,3 @@
-import 'dart:convert';
-
-import 'package:crypto/crypto.dart';
-import 'package:hive/hive.dart';
-import 'package:tekspog_rush/features/auth/data/models/userRole.dart';
-part 'user.g.dart';
-
 @HiveType(typeId: 0)
 class User {
   @HiveField(0)
@@ -61,5 +54,28 @@ class User {
 
   bool validatePassword(String input) {
     return passwordHash == _hash(input);
+  }
+
+  // The copyWith method to modify a specific field
+  User copyWith({
+    int? userId,
+    int? userRole,
+    String? username,
+    String? email,
+    double? balance,
+    String? phoneNumber,
+    String? passwordHash,
+    DateTime? createdAt,
+  }) {
+    return User(
+      userId: userId ?? this.userId,
+      userRole: userRole ?? this.userRole,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      balance: balance ?? this.balance,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      passwordHash: passwordHash ?? this.passwordHash,
+      createdAt: createdAt ?? this.createdAt,
+    );
   }
 }
