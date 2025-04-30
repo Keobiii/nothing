@@ -1,205 +1,65 @@
-class MoodEntry extends StatelessWidget {
-  MoodEntry({super.key});
+import 'dart:convert';
 
-  TextEditingController journalController = TextEditingController();
+import 'package:crypto/crypto.dart';
+import 'package:hive/hive.dart';
+import 'package:tekspog_rush/features/auth/data/models/userRole.dart';
+part 'user.g.dart';
 
-  List<Widget> carouselItem =
-      EmojiCategory.values
-          .skip(1)
-          .map(
-            (emojiCategory) => Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  ClipRRect(
-                    child: Image.asset(emojiCategory.image, fit: BoxFit.fill),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    emojiCategory.label,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList();
+@HiveType(typeId: 0)
+class User {
+  @HiveField(0)
+  int userId;
 
-  final ValueNotifier<int> _currentIndexNotifier = ValueNotifier(1);
-  final PageController _pageController = PageController();
+  @HiveField(1)
+  int userRole;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocConsumer<SliderBloc, SliderState>(
-        listener: (context, state) {
-          // TODO: implement listener
-          final int emojiId = state.currentSliderIndex ?? 1;
-          print('Updated ID: ${emojiId}');
-        },
-        builder: (context, state) {
-          final EmojiCategory currentCategory = EmojiCategory.fromEmojiId(
-            state.currentSliderIndex,
-          );
+  @HiveField(2)
+  String username;
 
-          print('Emoji Category: ${currentCategory.emojiId}');
-          return Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: currentCategory.color,
-            child: SingleChildScrollView(
-              child: Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      height: MediaQuery.of(context).size.height * 0.25,
-                      width: double.infinity,
-                      child: PageView(
-                        controller: _pageController,
-                        onPageChanged: (index) {
-                          context.read<SliderBloc>().add(
-                            SliderOnChanged(currentSliderIndex: index + 1),
-                          );
-                        },
-                        children:
-                            EmojiCategory.values.skip(1).map((category) {
-                              return _carouselItem(category.image);
-                            }).toList(),
-                      ),
-                    ),
+  @HiveField(3)
+  String email;
 
-                    Text(
-                      currentCategory.label,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Pixel',
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    SizedBox(height: 20),
-                    MoodJournalEntry(journalEntry: journalController),
-                    SizedBox(height: 20),
-                    MoodButton(
-                      color: currentCategory.color,
-                      text: 'Mood Entry',
-                      onPressed: () async {
-                        // open box
-                        final moodBox = Hive.box<MoodModel>('daily_moods');
-                        // get the value stored in bloc
-                        final emojiId =
-                            context.read<SliderBloc>().state.currentSliderIndex;
-                        final moodEntry = MoodModel(
-                          moodId: moodBox.length + 1,
-                          emojiId: emojiId,
-                          moodLog: journalController.text,
-                          timeStamp: DateTime.now(),
-                        );
+  @HiveField(4)
+  double balance;
 
-                        // await moodBox.add(moodEntry);
+  @HiveField(5)
+  String phoneNumber;
 
-                        print("Saved Entry: ${moodEntry.toString()}");
-                        print("All Mood Entries: ${moodBox.values.toList()}");
+  @HiveField(6)
+  String passwordHash;
 
-                        context.read<MoodBloc>().add(AddMoodEvent(moodEntry));
-                        context.read<MoodBloc>().add(LoadMoodEvent());
+  @HiveField(7)
+  DateTime createdAt;
 
-                        journalController.clear();
+  User({
+    required this.userId,
+    required this.userRole,
+    required this.username,
+    required this.email,
+    this.balance = 0,
+    required this.phoneNumber,
+    required String password,
+    required this.createdAt,
+  }) : passwordHash = _hash(password);
 
-                        // ScaffoldMessenger.of(context).showSnackBar(
-                        //   SnackBar(content: Text('Mood entry saved!')),
-                        // );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
+  User.fromHive({
+    required this.userId,
+    required this.userRole,
+    required this.username,
+    required this.email,
+    this.balance = 0,
+    required this.phoneNumber,
+    required this.passwordHash,
+    required this.createdAt,
+  });
 
-  Widget _carouselItem(String imagePath) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: Image.asset(imagePath),
-      ),
-    );
-  }
-}
+  UserRole get role => UserRole.fromLevel(userRole);
+  set role(UserRole role) => userRole = role.level;
 
+  static String _hash(String password) =>
+      sha256.convert(utf8.encode(password)).toString();
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'carousel_event.dart';
-import 'carousel_state.dart';
-
-class SliderBloc extends Bloc<SliderOnChanged, SliderState> {
-  final int currentSliderIndex = 1;
-
-  SliderBloc() : super(SliderState(currentSliderIndex: 1)) {
-    on<SliderOnChanged>((event, emit) {
-      emit(SliderState(currentSliderIndex: event.currentSliderIndex));
-      print("Slider New Index; ${event.currentSliderIndex}");
-    });
-  }
-}
-
-import 'package:equatable/equatable.dart';
-
-class SliderOnChanged {
-  final int currentSliderIndex;
-
-  SliderOnChanged({required this.currentSliderIndex});
-}
-
-class SliderState {
-  final int currentSliderIndex;
-
-  SliderState({required this.currentSliderIndex});
-}
-
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final appDocDir = await getApplicationDocumentsDirectory();
-  Hive.init(appDocDir.path);
-  Hive.registerAdapter(MoodModelAdapter());
-  final moodBox = await Hive.openBox<MoodModel>('daily_moods');
-
-  runApp(
-    MultiBlocProvider(
-      providers: [
-        RepositoryProvider(create: (_) => MoodRepository()),
-        BlocProvider(create: (_) => NavigationBloc()),
-        BlocProvider(
-          create:
-              (context) =>
-                  MoodBloc(moodRepository: context.read<MoodRepository>()),
-        ),
-        BlocProvider(create: (_) => SliderBloc()),
-      ],
-      child: const MyApp(),
-    ),
-  );
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      routerConfig: router,
-    );
+  bool validatePassword(String input) {
+    return passwordHash == _hash(input);
   }
 }
