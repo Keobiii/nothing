@@ -56,7 +56,7 @@ class User {
     return passwordHash == _hash(input);
   }
 
-  // The copyWith method to modify a specific field
+  // Updated copyWith, exclude password and passwordHash
   User copyWith({
     int? userId,
     int? userRole,
@@ -64,7 +64,6 @@ class User {
     String? email,
     double? balance,
     String? phoneNumber,
-    String? passwordHash,
     DateTime? createdAt,
   }) {
     return User(
@@ -74,8 +73,13 @@ class User {
       email: email ?? this.email,
       balance: balance ?? this.balance,
       phoneNumber: phoneNumber ?? this.phoneNumber,
-      passwordHash: passwordHash ?? this.passwordHash,
+      passwordHash: this.passwordHash,  // Keep the current passwordHash
       createdAt: createdAt ?? this.createdAt,
     );
+  }
+
+  // Function to update password separately
+  User updatePassword(String newPassword) {
+    return copyWith(passwordHash: _hash(newPassword));
   }
 }
