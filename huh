@@ -1,481 +1,14 @@
-class AuthRepository {
-  final AuthLocalDataSource _authLocalDataSource;
-  final SharedPreferences sharedPreferences;
-
-  AuthRepository({
-    required AuthLocalDataSource authLocalDataSource,
-    required this.sharedPreferences,
-  }) : _authLocalDataSource = authLocalDataSource;
-
-  Future<void> register(User user) async {
-    final isNumberExist = _authLocalDataSource.getUserByPhone(user.phoneNumber);
-    final isEmailExist = _authLocalDataSource.getUserByEmail(user.email);
-
-    if (isNumberExist != null)
-      throw Exception("Phone number is already in use");
-    if (isEmailExist != null) throw Exception("Email is already in use");
-
-    await _authLocalDataSource.saveUser(user);
-  }
-
-  // Future<User?> login(String email, String password) async {
-  //   final user = await _authLocalDataSource.getUserByEmail(email);
-  //   if (user != null && user.validatePassword(password)) return user;
-  //   return null;
-  // }
-
-  // New
-  Future<User?> login(String email, String password) async {
-    final user = await _authLocalDataSource.getUserByEmail(email);
-    if (user != null && user.validatePassword(password)) {
-      await sharedPreferences.setInt('loggedUserId', user.userId);
-      return user;
-    }
-    return null;
-  }
-
-  // New
-
-  Future<void> logout() async {
-    await sharedPreferences.remove('loggedUserId');
-  }
-
-  // New
-  Future<int?> getLoggedInUserId() async {
-    return sharedPreferences.getInt('loggedUserId');
-  }
-
-  Future<List<User>> getAllUsers() async {
-    return await _authLocalDataSource.loadUsers();
-  }
-
-  Future<User?> getUserById(int userId) async {
-    return await _authLocalDataSource.getUserById(userId);
-  }
-
-  User? getUserPhone(String phone) {
-    return _authLocalDataSource.getUserByPhone(phone);
-  }
-
-  User? getUserEmail(String email) {
-    return _authLocalDataSource.getUserByEmail(email);
-  }
-
-  Future<void> updateUserCollection(int userId, List<int> collectionIds) async {
-    await _authLocalDataSource.updateUserCollection(userId, collectionIds);
-  }
-
-  // Update Functions
-  Future<void> updateUser({
-    required int userId,
-    required String password,
-    String? username,
-    String? email,
-  }) async {
-    final existingUser = await getUserById(userId);
-    if (existingUser == null) throw Exception("User not found.");
-
-    if (!existingUser.validatePassword(password)) {
-      throw Exception("Invalid password.");
-    }
-
-    if (email != null) {
-      final emailExists = (await getAllUsers()).any(
-        (user) => user.email == email && user.userId != userId,
-      );
-
-      if (emailExists) throw Exception("Email is already in use.");
-    }
-
-    await _authLocalDataSource.updateUser(
-      userId: userId,
-      password: password,
-      username: username,
-      email: email,
-    );
-  }
-
-  Future<void> updateUserChips({
-    required int userId,
-    required double newChips,
-  }) async {
-    final existingUser = await getUserById(userId);
-    if (existingUser == null) throw Exception("User not found.");
-
-    await _authLocalDataSource.updateUserChips(
-      userId: userId,
-      newChips: newChips,
-    );
-  }
-
-  Future<void> updateUserPassword({
-    required int userId,
-    required String oldPassword,
-    required String newPassword,
-  }) async {
-    final existingUser = await getUserById(userId);
-    if (existingUser == null) throw Exception("User not found.");
-
-    if (!existingUser.validatePassword(oldPassword)) {
-      throw Exception("Invalid password.");
-    }
-
-    await _authLocalDataSource.updateUserPassword(
-      userId: userId,
-      oldPassword: oldPassword,
-      newPassword: newPassword,
-    );
-  }
-}
-
-
-
-
-class AuthLocalDataSource {
-  final Box<User> userBox;
-  final Box<int> counterBox;
-
-  AuthLocalDataSource({required this.userBox, required this.counterBox});
-
-  Future<int> _getNextUserId() async {
-    final lastId = counterBox.get('userIdCounter', defaultValue: 0) as int;
-    final newId = lastId + 1;
-    await counterBox.put('userIdCounter', newId);
-    return newId;
-  }
-
-  Future<void> saveUser(User user) async {
-    user.userId = await _getNextUserId();
-    await userBox.put(user.userId, user);
-  }
-
-  Future<void> updateUser({
-    required int userId,
-    required String password,
-    String? username,
-    String? email,
-  }) async {
-    final existingUser = userBox.get(userId);
-
-    if (existingUser == null) throw Exception("User not found.");
-
-    if (!existingUser.validatePassword(password)) {
-      throw Exception("Invalid password.");
-    }
-
-    final updatedUser = existingUser.copyWith(
-      username: username ?? existingUser.username,
-      email: email ?? existingUser.email,
-    );
-
-    await userBox.put(userId, updatedUser);
-  }
-
-  Future<void> updateUserPassword({
-    required int userId,
-    required String oldPassword,
-    required String newPassword,
-  }) async {
-    final existingUser = userBox.get(userId);
-
-    if (existingUser == null) throw Exception("User not found.");
-
-    if (!existingUser.validatePassword(oldPassword)) {
-      throw Exception("Incorrect Password.");
-    }
-
-    final updatedUser = existingUser.copyWith(
-      passwordHash: User.hash(newPassword),
-    );
-
-    await userBox.put(userId, updatedUser);
-  }
-
-  Future<void> updateUserChips({
-    required int userId,
-    required double newChips,
-  }) async {
-    final existingUser = userBox.get(userId);
-
-    if (existingUser == null) throw Exception("User not found.");
-
-    final currentChips = existingUser.chips;
-    final resultChips = currentChips + newChips;
-
-    if (resultChips < 0) {
-      throw Exception("Insufficient chips to deduct.");
-    }
-
-    final updatedUser = existingUser.copyWith(chips: resultChips);
-
-    await userBox.put(userId, updatedUser);
-  }
-
-  Future<void> updateUserCollection(int userId, List<int> collectionIds) async {
-    final user = userBox.get(userId);
-
-    if (user == null) {
-      throw Exception('User with ID $userId not found.');
-    }
-
-    try {
-      user.collectionIds = collectionIds;
-      await userBox.put(userId, user);
-    } catch (e) {
-      throw Exception('Failed to update collection: ${e.toString()}');
-    }
-  }
-
-  Future<List<User>> loadUsers() async {
-    return userBox.values.toList();
-  }
-
-  User? getUserById(int userId) {
-    try {
-      return userBox.values.firstWhere((user) => user.userId == userId);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  User? getUserByEmail(String email) {
-    try {
-      return userBox.values.firstWhere((user) => user.email == email);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  User? getUserByPhone(String phone) {
-    try {
-      return userBox.values.firstWhere((user) => user.phoneNumber == phone);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  getAllUsers() {}
-}
-
-
-
-class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthRepository authRepository;
-
-  AuthBloc({required this.authRepository}) : super(AuthInitial()) {
-    _checkLoggedInUser();
-    on<RegisterUser>(_onRegisterUser);
-    on<LoginUser>(_onLoginUser);
-    on<LogoutUser>(_onLogoutUser);
-  }
-
-  Future<void> _checkLoggedInUser() async {
-    final userId = await authRepository.getLoggedInUserId();
-    if (userId != null) {
-      final user = authRepository.getUserById(userId);
-      if (user != null) {
-        emit(AuthSucess());
-      }
-    }
-  }
-
-  Future<void> _onRegisterUser(
-    RegisterUser event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(AuthLoading());
-
-    try {
-      await authRepository.register(event.user);
-      emit(UserRegistered());
-      print('User Registered Success: ${event.user}');
-    } catch (e) {
-      emit(AuthFailure(e.toString()));
-      print('User Registered Failed: ${e}');
-    }
-  }
-
-  Future<void> _onLoginUser(LoginUser event, Emitter<AuthState> emit) async {
-    emit(AuthLoading());
-
-    try {
-      final user = await authRepository.login(event.email, event.password);
-
-      if (user != null) {
-        emit(AuthSucess(user));
-      } else {
-        emit(AuthFailure("Invalid Credential"));
-      }
-    } catch (e) {
-      emit(AuthFailure(e.toString()));
-    }
-  }
-
-  Future<void> _onLogoutUser(LogoutUser event, Emitter<AuthState> emit) async {
-    await authRepository.logout();
-    emit(AuthInitial());
-  }
-}
-
-
-abstract class AuthState {}
-
-class AuthInitial extends AuthState {}
-
-class AuthLoading extends AuthState {}
-
-class UserRegistered extends AuthState {}
-
-class AuthSucess extends AuthState {
-  final User user;
-  AuthSucess(this.user);
-}
-
-class AuthFailure extends AuthState {
-  final String message;
-  AuthFailure(this.message);
-}
-
-abstract class AuthEvent {}
-
-class RegisterUser extends AuthEvent {
-  final User user;
-  RegisterUser(this.user);
-}
-
-class LoginUser extends AuthEvent {
-  final String email;
-  final String password;
-  LoginUser(this.email, this.password);
-}
-
-class LogoutUser extends AuthEvent {}
-
-final inj = GetIt.instance;
-
-Future<void> initDependencies() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
-
-  // Hive Model Adapter
-  Hive.registerAdapter(UserAdapter());
-
-  final sharedPreferences = await SharedPreferences.getInstance();
-  inj.registerLazySingleton<SharedPreferences>(() => sharedPreferences);
-
-  // register box if not existed
-  if (!Hive.isBoxOpen('userBox')) {
-    await Hive.openBox<User>('userBox');
-  }
-
-  if (!Hive.isBoxOpen('counterBox')) {
-    await Hive.openBox<int>('counterBox');
-  }
-
-  if (!Hive.box<int>('counterBox').containsKey('userIdCounter')) {
-    Hive.box<int>('counterBox').put('userIdCounter', 0);
-  }
-
-  // open box one time
-  inj.registerLazySingleton<Box<User>>(() => Hive.box<User>('userBox'));
-  inj.registerLazySingleton<Box<int>>(() => Hive.box<int>('counterBox'));
-
-  //
-  _initSourceRepo();
-}
-
-void _initSourceRepo() {
-  // Local Data Source
-  inj.registerLazySingleton<AuthLocalDataSource>(
-    () => AuthLocalDataSource(
-      userBox: inj<Box<User>>(),
-      counterBox: inj<Box<int>>(),
-    ),
-  );
-
-  inj.registerLazySingleton<UserNavLocalDataSource>(
-    () => UserNavLocalDataSource(),
-  );
-
-  // Auth Repo
-  inj.registerFactory<AuthRepository>(
-    () => AuthRepository(
-      authLocalDataSource: inj<AuthLocalDataSource>(),
-      sharedPreferences: inj<SharedPreferences>(),
-    ),
-  );
-
-  // pass repo in blocs
-  inj.registerFactory<AuthBloc>(
-    () => AuthBloc(authRepository: inj<AuthRepository>()),
-  );
-
-  inj.registerFactory<UserBloc>(
-    () => UserBloc(authRepository: inj<AuthRepository>()),
-  );
-
-  // User Nav
-  inj.registerFactory<UserNavigationRepository>(
-    () => UserNavigationRepository(
-      localDataSource: inj<UserNavLocalDataSource>(),
-    ),
-  );
-
-  // pass repo in blocs
-  inj.registerFactory<NavigationBloc>(
-    () => NavigationBloc(
-      userNavigationRepository: inj<UserNavigationRepository>(),
-    ),
-  );
-}
-
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initDependencies();
-  runApp(
-    MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => inj<AuthBloc>()),
-        BlocProvider(create: (_) => inj<UserBloc>()),
-        BlocProvider(create: (_) => ShopBloc()),
-        BlocProvider(create: (_) => inj<NavigationBloc>()),
-        BlocProvider(create: (_) => CarouselBloc()),
-      ],
-      child: const MyApp(),
-    ),
-  );
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.portraitUp,
-    ]);
-
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      routerConfig: router,
-    );
-  }
-}
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
   redirect: (context, state) async {
     final sharedPreferences = await SharedPreferences.getInstance();
-    final userId = sharedPreferences.getInt('userId');
+    final userId = sharedPreferences.getInt('loggedUserId');
 
-    // Redirect to login if no userId is stored
     if (userId == null && state.matchedLocation != '/login') {
       return '/login';
     }
 
-    // Redirect to home if already logged in and visiting login page
     if (userId != null && state.matchedLocation == '/login') {
       return '/';
     }
@@ -549,4 +82,156 @@ CustomTransitionPage fadeTransition(Widget child, GoRouterState state) {
       return FadeTransition(opacity: animation, child: child);
     },
   );
+}
+
+
+
+class UserMainScreen extends StatelessWidget {
+  final Widget child;
+  final int userId;
+  const UserMainScreen({super.key, required this.child, required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<NavigationBloc, NavigationState>(
+      builder: (context, state) {
+        return Scaffold(appBar: CustomAppBar(userId: userId), body: child);
+      },
+    );
+  }
+}
+
+
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final double height;
+  final int userId;
+
+  const CustomAppBar({Key? key, this.height = 80, required this.userId})
+    : super(key: key);
+
+  @override
+  Size get preferredSize => Size.fromHeight(height);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<UserBloc, UserState>(
+      builder: (context, state) {
+        if (state is UserInitial || state is UserUpdated) {
+          context.read<UserBloc>().add(LoadUserById(userId));
+        }
+
+        String chipsBalance = "---";
+        if (state is UserLoaded) {
+          chipsBalance = "${state.user.chips}";
+        }
+        return Container(
+          height: height,
+          decoration: BoxDecoration(
+            color: Color(0xFF21273e),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black54,
+                blurRadius: 3,
+                spreadRadius: 2,
+                offset: Offset(2, 2),
+              ),
+            ],
+          ),
+
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  context.go('/');
+                },
+                child: Container(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    fit: BoxFit.fill,
+                    height: 45,
+                    width: 90,
+                  ),
+                ),
+              ),
+              Container(
+                width: 170,
+                height: 40,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 120,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.grey,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              context.go('/shop');
+                            },
+                            child: SizedBox(
+                              height: 40,
+                              width: 40,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Image.asset(
+                                  'assets/images/elements/currency.png',
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Countup(
+                              begin: 100,
+                              end:
+                                  (chipsBalance != "---")
+                                      ? double.tryParse(chipsBalance) ?? 0.0
+                                      : 0.0,
+                              duration: Duration(seconds: 3),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        // Navigate to profile using GoRouter
+                        context.go('/user_page/$userId');
+                      },
+                      child: CircleAvatar(
+                        backgroundColor: Colors.blue,
+                        radius: 20,
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/user/nobita.png',
+                            fit: BoxFit.cover,
+                            height: 45,
+                            width: 45,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
