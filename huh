@@ -308,3 +308,60 @@ class _UserMainScreenState extends State<UserMainScreen> {
   }
 }
 
+E/libEGL  (22365): called unimplemented OpenGL ES API
+E/flutter (22365): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: Error: Could not find the correct Provider<UserBloc> above this CustomAppBar Widget
+E/flutter (22365): 
+E/flutter (22365): This happens because you used a `BuildContext` that does not include the provider
+E/flutter (22365): of your choice. There are a few common scenarios:
+E/flutter (22365): 
+E/flutter (22365): - You added a new provider in your `main.dart` and performed a hot-reload.
+E/flutter (22365):   To fix, perform a hot-restart.
+E/flutter (22365): 
+E/flutter (22365): - The provider you are trying to read is in a different route.
+E/flutter (22365): 
+E/flutter (22365):   Providers are "scoped". So if you insert of provider inside a route, then
+E/flutter (22365):   other routes will not be able to access that provider.
+E/flutter (22365): 
+E/flutter (22365): - You used a `BuildContext` that is an ancestor of the provider you are trying to read.
+E/flutter (22365): 
+E/flutter (22365):   Make sure that CustomAppBar is under your MultiProvider/Provider<UserBloc>.
+E/flutter (22365):   This usually happens when you are creating a provider and trying to read it immediately.
+E/flutter (22365): 
+E/flutter (22365):   For example, instead of:
+E/flutter (22365): 
+E/flutter (22365):   ```
+E/flutter (22365):   Widget build(BuildContext context) {
+E/flutter (22365):     return Provider<Example>(
+E/flutter (22365):       create: (_) => Example(),
+E/flutter (22365):       // Will throw a ProviderNotFoundError, because `context` is associated
+E/flutter (22365):       // to the widget that is the parent of `Provider<Example>`
+E/flutter (22365):       child: Text(context.watch<Example>().toString()),
+E/flutter (22365):     );
+E/flutter (22365):   }
+E/flutter (22365):   ```
+E/flutter (22365): 
+E/flutter (22365):   consider using `builder` like so:
+E/flutter (22365): 
+E/flutter (22365):   ```
+E/flutter (22365):   Widget build(BuildContext context) {
+E/flutter (22365):     return Provider<Example>(
+E/flutter (22365):       create: (_) => Example(),
+E/flutter (22365):       // we use `builder` to obtain a new `BuildContext` that has access to the provider
+E/flutter (22365):       builder: (context, child) {
+E/flutter (22365):         // No longer throws
+E/flutter (22365):         return Text(context.watch<Example>().toString());
+E/flutter (22365):       }
+E/flutter (22365):     );
+E/flutter (22365):   }
+E/flutter (22365):   ```
+E/flutter (22365): 
+E/flutter (22365): If none of these solutions work, consider asking for help on StackOverflow:
+E/flutter (22365): https://stackoverflow.com/questions/tagged/flutter
+E/flutter (22365): 
+E/flutter (22365): #0      Provider._inheritedElementOf (package:provider/src/provider.dart:377:7)
+E/flutter (22365): #1      Provider.of (package:provider/src/provider.dart:327:30)
+E/flutter (22365): #2      ReadContext.read (package:provider/src/provider.dart:683:21)
+E/flutter (22365): #3      _CustomAppBarState._loadUserId (package:tekspog_rush/core/widgets/appbar.dart:40:13)
+E/flutter (22365): <asynchronous suspension>
+E/flutter (22365): 
+I/Choreographer(22365): Skipped 660 frames!  The application may be doing too much work on its main thread.
