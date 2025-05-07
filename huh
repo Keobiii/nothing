@@ -1,1 +1,248 @@
-ElevatedButton( onPressed: () { context.read<UserBloc>().add( UpdateUserCollection( userId: widget.userId, collectionIds: [1], ), ); }, child: const Text('Add Collection'), ), bloc Future<void> _onUpdateUserCollection( UpdateUserCollection event, Emitter<UserState> emit, ) async { emit(UserLoading()); try { await authRepository.updateUserCollection( event.userId, event.collectionIds, ); add(LoadUserById(event.userId)); emit(UserUpdated()); } catch (e) { emit(UserFailedUpdate(e.toString())); print(e.toString()); } } repo Future<void> updateUserCollection(int userId, List<int> collectionIds) async { await _authLocalDataSource.updateUserCollection(userId, collectionIds); } data source Future<void> updateUserCollection(int userId, List<int> collectionIds) async { final user = userBox.get(userId); if (user == null) { throw Exception('User with ID $userId not found.'); } try { user.collectionIds = collectionIds; await userBox.put(userId, user); } catch (e) { throw Exception('Failed to update collection: ${e.toString()}'); } } i want to allow the user to input collection manually, but in the hive the collection is set to a list. my idea is the function accepts int parameter then all the int will be stored in list and use that to put in database. what do you think??
+final inj = GetIt.instance;
+
+Future<void> initDependencies() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+
+  // Hive Model Adapter
+  Hive.registerAdapter(UserAdapter());
+
+  final sharedPreferences = await SharedPreferences.getInstance();
+  inj.registerLazySingleton<SharedPreferences>(() => sharedPreferences);
+
+  // register box if not existed
+  if (!Hive.isBoxOpen('userBox')) {
+    await Hive.openBox<User>('userBox');
+  }
+
+  if (!Hive.isBoxOpen('counterBox')) {
+    await Hive.openBox<int>('counterBox');
+  }
+
+  // open box of the transaction database
+  if (!Hive.isBoxOpen('transactionBox')) {
+    await Hive.openBox<Transaction>('transactionBox');
+  }
+
+  if (!Hive.box<int>('counterBox').containsKey('userIdCounter')) {
+    Hive.box<int>('counterBox').put('userIdCounter', 0);
+  }
+
+  // open box one time
+  inj.registerLazySingleton<Box<User>>(() => Hive.box<User>('userBox'));
+  inj.registerLazySingleton<Box<int>>(() => Hive.box<int>('counterBox'));
+  inj.registerLazySingleton<Box<Transaction>>(
+    () => Hive.box<Transaction>('transactionBox'),
+  );
+
+  //
+  _initSourceRepo();
+}
+
+void _initSourceRepo() {
+  // Local Data Source
+  inj.registerLazySingleton<AuthLocalDataSource>(
+    () => AuthLocalDataSource(
+      userBox: inj<Box<User>>(),
+      counterBox: inj<Box<int>>(),
+      transactionBox: inj<Box<Transaction>>(), // added transaction box
+    ),
+  );
+
+  inj.registerLazySingleton<UserNavLocalDataSource>(
+    () => UserNavLocalDataSource(),
+  );
+
+  // Auth Repo
+  inj.registerFactory<AuthRepository>(
+    () => AuthRepository(
+      authLocalDataSource: inj<AuthLocalDataSource>(),
+      sharedPreferences: inj<SharedPreferences>(),
+    ),
+  );
+
+  // pass repo in blocs
+  inj.registerFactory<AuthBloc>(
+    () => AuthBloc(authRepository: inj<AuthRepository>()),
+  );
+
+  inj.registerFactory<UserBloc>(
+    () => UserBloc(authRepository: inj<AuthRepository>()),
+  );
+
+  // User Nav
+  inj.registerFactory<UserNavigationRepository>(
+    () => UserNavigationRepository(
+      localDataSource: inj<UserNavLocalDataSource>(),
+    ),
+  );
+
+  // pass repo in blocs
+  inj.registerFactory<NavigationBloc>(
+    () => NavigationBloc(
+      userNavigationRepository: inj<UserNavigationRepository>(),
+    ),
+  );
+}
+
+
+main.dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initDependencies();
+  runApp(
+    // Global BLocs
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => inj<AuthBloc>()),
+        // BlocProvider(create: (_) => inj<UserBloc>()),
+        // BlocProvider(create: (_) => ShopBloc()),
+        BlocProvider(create: (_) => inj<NavigationBloc>()),
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.portraitUp,
+    ]);
+
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      routerConfig: router,
+    );
+  }
+}
+
+
+route
+final GoRouter router = GoRouter(
+  initialLocation: '/',
+  redirect: (context, state) async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final userId = sharedPreferences.getInt('loggedUserId');
+
+    if (userId == null) {
+      if (state.matchedLocation == '/login') {
+        return null;
+      }
+      return '/login';
+    }
+
+    if (userId != null && state.matchedLocation == '/login') {
+      return '/';
+    }
+
+    return null;
+  },
+  routes: [
+    GoRoute(
+      path: '/login',
+      pageBuilder: (context, state) => fadeTransition(const Login(), state),
+    ),
+
+    ShellRoute(
+      builder: (context, state, child) {
+        final authState = context.watch<AuthBloc>().state;
+        final userId = authState is AuthSucess ? authState.user.userId : 0;
+
+        return UserMainScreen(child: child, userId: userId);
+      },
+      routes: [
+        GoRoute(
+          path: '/',
+          pageBuilder:
+              (context, state) => fadeTransition(const GameHomePage(), state),
+        ),
+        GoRoute(
+          path: '/user_page/:userId',
+          pageBuilder: (context, state) {
+            final userId =
+                int.tryParse(state.pathParameters['userId'] ?? '') ?? 0;
+            return fadeTransition(
+              BlocProvider(
+                create: (context) => inj<UserBloc>(),
+                child: UserPage(userId: userId, transactionType: 1),
+              ),
+              state,
+            );
+
+            // return fadeTransition(UserPage(userId: userId), state);
+            // return fadeTransition(ProfileUI(userId: userId), state);
+          },
+        ),
+        GoRoute(
+          path: '/profile/:userId',
+          pageBuilder: (context, state) {
+            final userId =
+                int.tryParse(state.pathParameters['userId'] ?? '') ?? 0;
+            return fadeTransition(
+              BlocProvider(
+                create: (context) => inj<UserBloc>(),
+                child: UserProfile(userId: userId),
+              ),
+              state,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/update_password/:userId',
+          pageBuilder: (context, state) {
+            final userId =
+                int.tryParse(state.pathParameters['userId'] ?? '') ?? 0;
+            return fadeTransition(
+              BlocProvider(
+                create: (context) => inj<UserBloc>(),
+                child: UserUpdatePassword(userId: userId),
+              ),
+              state,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/game',
+          pageBuilder:
+              (context, state) => fadeTransition(const GamePage(), state),
+        ),
+        GoRoute(
+          path: '/shop',
+          pageBuilder: (context, state) {
+            return fadeTransition(
+              BlocProvider(
+                create: (context) => inj<ShopBloc>(),
+                child: ShopPage(),
+              ),
+              state,
+            );
+          },
+        ),
+      ],
+    ),
+  ],
+);
+
+CustomTransitionPage fadeTransition(Widget child, GoRouterState state) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+  );
+}
+
+Error:
+The following StateError was thrown building Builder(dirty, dependencies: [_InheritedProviderScope<AuthBloc?>]):
+Bad state: GetIt: Object/factory with type AuthBloc is not registered inside GetIt. 
+(Did you accidentally do GetIt sl=GetIt.instance(); instead of GetIt sl=GetIt.instance;
+Did you forget to register it?)
+
+The relevant error-causing widget was:
+...Flutter/tekspog_rush/lib/main.dart:38:26
