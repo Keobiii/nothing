@@ -259,3 +259,52 @@ Rather than awaiting on asynchronous work directly inside of initState, call a s
 
 The relevant error-causing widget was:
 ...Flutter/tekspog_rush/lib/main.dart:63:26
+
+
+user main screen
+class UserMainScreen extends StatefulWidget {
+  final Widget child;
+  final int userId;
+  const UserMainScreen({super.key, required this.child, required this.userId});
+
+  @override
+  State<UserMainScreen> createState() => _UserMainScreenState();
+}
+
+class _UserMainScreenState extends State<UserMainScreen> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final userId = sharedPreferences.getInt('loggedUserId');
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<NavigationBloc, NavigationState>(
+      builder: (context, state) {
+        return Scaffold(
+          appBar: CustomAppBar(userId: widget.userId),
+          body: widget.child,
+        );
+      },
+    );
+  }
+}
+
